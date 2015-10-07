@@ -7,20 +7,12 @@ session_start();
 
 require 'PHPMailerAutoload.php';
 
-
-// false local / true production
-$jwt_enabled = true;
 // Token
 $decoded_token = null;
-// JWT Secret Key
-$secret = 'uiglp';
-// JWT AUD
-$serverName = 'serverName';
 
-require_once '/config.php';
-
-if (file_exists('../../../MyDBi.php')) {
-    require_once '../../../MyDBi.php';
+if (file_exists('../../../includes/MyDBi.php')) {
+    require_once '../../../includes/MyDBi.php';
+    require_once '../../../includes/config.php';
 } else {
     require_once 'MyDBi.php';
 }
@@ -44,10 +36,9 @@ if ($jwt_enabled) {
 
     // Las funciones en el if no necesitan usuario logged
     if ($decoded != null &&
-        ($decoded->function == 'login' ||
-            $decoded->function == 'create' ||
-            $decoded->function == 'clientExist' ||
-            $decoded->function == 'forgotPassword')
+        ($decoded->function == 'getProductos' ||
+            $decoded->function == 'getCategorias') ||
+        $decoded->function == 'getCarritos'
     ) {
         $token = '';
     } else {
@@ -58,217 +49,409 @@ if ($jwt_enabled) {
 
 
 if ($decoded != null) {
-    if ($decoded->function == 'login') {
-        login($decoded->mail, $decoded->password, $decoded->sucursal_id);
-    } else if ($decoded->function == 'checkLastLogin') {
-        checkLastLogin($decoded->productid);
-    } else if ($decoded->function == 'create') {
-        create($decoded->product);
-    } else if ($decoded->function == 'productExist') {
-        productExist($decoded->mail);
-    } else if ($decoded->function == 'changePassword') {
-        changePassword($decoded->usuario_id, $decoded->pass_old, $decoded->pass_new);
-    } else if ($decoded->function == 'update') {
-        update($decoded->product);
-    } else if ($decoded->function == 'remove') {
-        remove($decoded->usuario_id);
-    } else if ($decoded->function == 'forgotPassword') {
-        forgotPassword($decoded->email);
+    if ($decoded->function == 'createProducto') {
+        createProducto($decoded->producto);
+    } else if ($decoded->function == 'createCategoria') {
+        createCategoria($decoded->categoria);
+    } else if ($decoded->function == 'createCarrito') {
+        createCarrito($decoded->carrito);
+    } else if ($decoded->function == 'updateProducto') {
+        updateProducto($decoded->producto);
+    } else if ($decoded->function == 'updateCategoria') {
+        updateCategoria($decoded->categoria);
+    } else if ($decoded->function == 'updateCarrito') {
+        updateCarrito($decoded->carrito);
+    } else if ($decoded->function == 'removeProducto') {
+        removeProducto($decoded->producto);
+    } else if ($decoded->function == 'removeCategoria') {
+        removeCategoria($decoded->categoria);
+    } else if ($decoded->function == 'removeCarrito') {
+        removeCarrito($decoded->carrito);
     }
 } else {
     $function = $_GET["function"];
-    if ($function == 'get') {
-        get();
+    if ($function == 'getProductos') {
+        getProductos();
+    } elseif ($function == 'getCategorias') {
+        getCategorias();
+    } elseif ($function == 'getCarritos') {
+        getCarritos($_GET["usuario_id"]);
     }
 }
 
-/* @name: checkSecurity
- * @param
- * @description: Verifica las credenciales enviadas. En caso de no ser correctas, retorna el error correspondiente.
+
+/////// INSERT ////////
+/**
+ * @description Crea un producto, sus fotos, precios y le asigna las categorias
+ * @param $product
  */
-function checkSecurity()
+function createProducto($product)
 {
-    $requestHeaders = apache_request_headers();
-    $authorizationHeader = $requestHeaders['Authorization'];
-//    echo print_r(apache_request_headers());
-
-
-    if ($authorizationHeader == null) {
-        header('HTTP/1.0 401 Unauthorized');
-        echo "No authorization header sent";
-        exit();
-    }
-
-    // // validate the token
-    $pre_token = str_replace('Bearer ', '', $authorizationHeader);
-    $token = str_replace('"', '', $pre_token);
-    global $secret;
-    global $decoded_token;
-    try {
-        $decoded_token = JWT::decode($token, base64_decode(strtr($secret, '-_', '+/')), false);
-    } catch (UnexpectedValueException $ex) {
-        header('HTTP/1.0 401 Unauthorized');
-        echo "Invalid token";
-        exit();
-    }
-
-
-    global $serverName;
-
-    // // validate that this token was made for us
-    if ($decoded_token->aud != $serverName) {
-        header('HTTP/1.0 401 Unauthorized');
-        echo "Invalid token";
-        exit();
-    }
-
-}
-
-/* @name: forgotPassword
- * @param $email = email del usuario
- * @description: Envia al usuario que lo solicita, un password aleatorio. El password se envía desde acá porque no debe
- * pasar por js, el js está en el cliente, lo cual podría dar un punto para conseguir un pass temporal.
- * todo: Agregar tiempo límite para el cambio. Agregar template de mail dinámico.
- */
-function forgotPassword($email)
-{
-
     $db = new MysqliDb();
-    $options = ['cost' => 12];
-    $new_password = randomPassword();
+    $db->startTransaction();
+    $product_decoded = checkProducto(json_decode($product));
 
-    $password = password_hash($new_password, PASSWORD_BCRYPT, $options);
+    $data = array(
+        'nombre' => $product_decoded->nombre,
+        'descripcion' => $product_decoded->descripcion,
+        'pto_repo' => $product_decoded->mail,
+        'sku' => $product_decoded->pto_repo,
+        'status' => $product_decoded->status,
+        'vendidos' => $product_decoded->vendidos,
+        'destacado' => $product_decoded->destacado,
+        'en_slider' => $product_decoded->en_slider,
+        'en_oferta' => $product_decoded->en_oferta,
+        'producto_tipo' => $product_decoded->producto_tipo
+    );
 
-    $data = array('password' => $password);
+    $result = $db->insert('productos', $data);
+    if ($result > -1) {
 
-    $db->where('mail', $email);
-
-    if ($db->update('usuarios', $data)) {
-        $mail = new PHPMailer;
-        $mail->isSMTP();                                      // Set mailer to use SMTP
-        $mail->Host = 'gator4184.hostgator.com';  // Specify main and backup SMTP servers
-        $mail->SMTPAuth = true;                               // Enable SMTP authentication
-        $mail->Productname = 'ventas@ac-desarrollos.com';                 // SMTP productname
-        $mail->Password = 'ventas';                           // SMTP password
-        $mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
-        $mail->Port = 465;
-
-        $mail->From = 'ventas@ac-desarrollos.com';
-        $mail->FromName = 'UIGLP';
-        $mail->addAddress($email);     // Add a recipient
-        $mail->addAddress('arielcessario@gmail.com');     // Add a recipient
-        $mail->addAddress('juan.dilello@gmail.com');               // Name is optional
-        $mail->addAddress('diegoyankelevich@gmail.com');
-        $mail->isHTML(true);    // Name is optional
-
-        $mail->Subject = 'Recuperar Contraseña UGLP';
-        $mail->Body = "
-            <table>
-                <tr>
-                    <td>Te enviamos a continuación la siguiente contraseña.</td>
-                </tr>
-                <tr>
-                    <td>Nueva Contraseña:</td>
-                </tr>
-                <tr>
-                    <td>" . $new_password . "</td>
-                </tr>
-                <tr>
-                    <td>UIGLP</td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-            </table>";
-        $mail->AltBody = "Nuevo Mail:" . $new_password;
-
-        if (!$mail->send()) {
-            echo 'Message could not be sent.';
-            echo 'Mailer Error: ' . $mail->ErrorInfo;
-        } else {
-            echo 'Message has been sent';
+        foreach ($product_decoded->precios as $precio) {
+            if (createPrecios($precio, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
         }
+        foreach ($product_decoded->categorias as $categoria) {
+            if (createCategorias($categoria, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+        foreach ($product_decoded->fotos as $foto) {
+
+            if (createFotos($foto, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+
+        // Solo para cuando es kit
+        if ($product_decoded->producto_tipo == 2) {
+            foreach ($product_decoded->productos_kit as $producto_kit) {
+                if (createKits($producto_kit, $result, $db)) {
+                    $db->rollback();
+                    echo json_encode(-1);
+                    return;
+                }
+            }
+        }
+
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
+    }
+}
+
+/**
+ * @param $precio
+ * @param $producto_id
+ * @param $db
+ * @return bool
+ */
+function createPrecios($precio, $producto_id, $db)
+{
+    $data = array(
+        'precio_tipo_id' => $precio->precio_tipo_id,
+        'producto_id' => $producto_id,
+        'precio' => $precio->precio
+    );
+    $pre = $db->insert('precios', $data);
+    return ($pre > -1) ? true : false;
+}
+
+/**
+ * @param $categoria
+ * @param $producto_id
+ * @param $db
+ * @return bool
+ */
+function createCategorias($categoria, $producto_id, $db)
+{
+    $data = array(
+        'categoria_id' => $categoria->categoria_id,
+        'producto_id' => $producto_id
+    );
+
+    $cat = $db->insert('productos_categorias', $data);
+    return ($cat > -1) ? true : false;
+}
+
+
+/**
+ * @param $foto
+ * @param $producto_id
+ * @param $db
+ * @return bool
+ */
+function createFotos($foto, $producto_id, $db)
+{
+    $data = array(
+        'main' => $foto->main,
+        'nombre' => $foto->nombre,
+        'producto_id' => $producto_id
+    );
+
+    $fot = $db->insert('productos_fotos', $data);
+    return ($fot > -1) ? true : false;
+}
+
+/**
+ * @param $kit
+ * @param $producto_id
+ * @param $db
+ * @return bool
+ */
+function createKits($kit, $producto_id, $db)
+{
+    $data = array(
+        'producto_cantidad' => $kit->producto_cantidad,
+        'producto_id' => $producto_id
+    );
+
+    $kit = $db->insert('productos_kits', $data);
+    return ($kit > -1) ? true : false;
+}
+
+/**
+ * @param $categoria
+ */
+function createCategoria($categoria)
+{
+    $db = new MysqliDb();
+    $db->startTransaction();
+    $categoria_decoded = checkCategoria(json_decode($categoria));
+
+    $data = array(
+        'nombre' => $categoria_decoded->nombre,
+        'parent_id' => $categoria_decoded->parent_id
+    );
+
+    $result = $db->insert('categorias', $data);
+    if ($result > -1) {
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
+    }
+}
+
+/**
+ * @param $carrito
+ */
+function createCarrito($carrito)
+{
+    $db = new MysqliDb();
+    $db->startTransaction();
+    $carrito_decoded = checkCarrito(json_decode($carrito));
+
+    $data = array(
+        'status' => $carrito_decoded->status,
+        'total' => $carrito_decoded->total,
+        'fecha' => $carrito_decoded->fecha,
+        'usuario_id' => $carrito_decoded->usuario_id
+    );
+
+    $result = $db->insert('carritos', $data);
+    if ($result > -1) {
+
+        foreach ($carrito_decoded->detalles as $detalle) {
+            $data = array(
+                'carrito_id' => $result,
+                'producto_id' => $detalle->producto_id,
+                'cantidad' => $detalle->cantidad,
+                'en_oferta' => $detalle->en_oferta,
+                'precio_unitario' => $detalle->precio_unitario
+            );
+
+            $pre = $db->insert('carrito_detalles', $data);
+            if ($pre > -1) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
     }
 }
 
 
-/* @name: randomPassword
- * @description: Genera password aleatorio.
- * @return: array(string) crea un array de 8 letra
+/////// UPDATE ////////
+
+/**
+ * @description Modifica un producto, sus fotos, precios y le asigna las categorias
+ * @param $product
  */
-function randomPassword()
+function updateProducto($product)
 {
-    $alphabet = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789";
-    $pass = array(); //remember to declare $pass as an array
-    $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
-    for ($i = 0; $i < 8; $i++) {
-        $n = rand(0, $alphaLength);
-        $pass[] = $alphabet[$n];
+    $db = new MysqliDb();
+    $db->startTransaction();
+    $product_decoded = checkProducto(json_decode($product));
+
+    $db->where('producto_id', $product_decoded->producto_id);
+    $data = array(
+        'nombre' => $product_decoded->nombre,
+        'descripcion' => $product_decoded->descripcion,
+        'pto_repo' => $product_decoded->mail,
+        'sku' => $product_decoded->pto_repo,
+        'status' => $product_decoded->status,
+        'vendidos' => $product_decoded->vendidos,
+        'destacado' => $product_decoded->destacado,
+        'en_slider' => $product_decoded->en_slider,
+        'en_oferta' => $product_decoded->en_oferta,
+        'producto_tipo' => $product_decoded->producto_tipo
+    );
+
+    $result = $db->update('productos', $data);
+
+
+    $db->where('producto_id', $product_decoded->producto_id);
+    $db->delete('precios');
+    $db->delete('productos_fotos');
+    $db->delete('productos_categorias');
+    $db->delete('productos_kits');
+
+    if ($result > -1) {
+
+        foreach ($product_decoded->precios as $precio) {
+            if (createPrecios($precio, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+        foreach ($product_decoded->categorias as $categoria) {
+            if (createCategorias($categoria, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+        foreach ($product_decoded->fotos as $foto) {
+
+            if (createFotos($foto, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+
+        // Solo para cuando es kit
+        if ($product_decoded->producto_tipo == 2) {
+            foreach ($product_decoded->productos_kit as $producto_kit) {
+                if (createKits($producto_kit, $result, $db)) {
+                    $db->rollback();
+                    echo json_encode(-1);
+                    return;
+                }
+            }
+        }
+
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
     }
-    return implode($pass); //turn the array into a string
 }
 
 
-/* @name: createToken
- * @param
- * @description: Envia al usuario que lo solicita, un password aleatorio.
- * @return: JWT:string de token
- * todo: Agregar tiempos de expiración. Evaluar si hay que devolver algún dato dentro de data.
- */
-function createToken()
+function updateCategoria($categoria)
 {
+    $db = new MysqliDb();
+    $db->startTransaction();
+    $categoria_decoded = checkCategorias(json_decode($categoria));
+    $db->where('categoria_id', $categoria_decoded->categoria_id);
+    $data = array(
+        'nombre' => $categoria_decoded->nombre,
+        'parent_id' => $categoria_decoded->parent_id
+    );
 
-    $tokenId = base64_encode(mcrypt_create_iv(32));
-    $issuedAt = time();
-    $notBefore = $issuedAt + 10;             //Adding 10 seconds
-    $expire = $notBefore + 60;            // Adding 60 seconds
-    global $serverName; // Retrieve the server name from config file
-    $aud = $serverName;
-//        $serverName = $config->get('serverName'); // Retrieve the server name from config file
-
-    /*
-     * Create the token as an array
-     */
-    $data = [
-        'iat' => $issuedAt,         // Issued at: time when the token was generated
-        'jti' => $tokenId,          // Json Token Id: an unique identifier for the token
-        'iss' => $serverName,       // Issuer
-        'nbf' => $notBefore,        // Not before
-        'exp' => $expire,           // Expire
-        'aud' => $aud,           // Expire
-        'data' => [                  // Data related to the signer product
-//            'id' => $id, // productid from the products table
-//            'nombre' => $nombre, // Product name
-//            'apellido' => $apellido, // Product name
-//            'mail' => $mail, // Product name
-//            'rol' => $rol // Rol
-        ]
-    ];
-
-    global $secret;
-    return JWT::encode($data, $secret);
-    /*
-     * More code here...
-     */
+    $result = $db->update('categorias', $data);
+    if ($result) {
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
+    }
 }
 
-/* @name: remove
- * @param $usuario_id = id de usuario
- * @description: Borra un usuario y su dirección.
- * todo: Sacar dirección y crear sus propias clases dentro de este mismo módulo.
+
+/**
+ * @param $categoria
  */
-function remove($usuario_id)
+function updateCarrito($carrito)
+{
+    $db = new MysqliDb();
+    $db->startTransaction();
+    $carrito_decoded = checkCarrito(json_decode($carrito));
+    $db->where('carrito_id', $carrito_decoded->carrito_id);
+    $data = array(
+        'status' => $carrito_decoded->status,
+        'total' => $carrito_decoded->total,
+        'fecha' => $carrito_decoded->fecha,
+        'usuario_id' => $carrito_decoded->usuario_id
+    );
+
+    $result = $db->update('carritos', $data);
+    if ($result) {
+        $db->where('carrito_id', $carrito_decoded->producto_id);
+        $result = $db->delete('carritos');
+        foreach ($carrito_decoded->detalles as $detalle) {
+            $data = array(
+                'carrito_id' => $result,
+                'producto_id' => $detalle->producto_id,
+                'cantidad' => $detalle->cantidad,
+                'en_oferta' => $detalle->en_oferta,
+                'precio_unitario' => $detalle->precio_unitario
+            );
+
+            $pre = $db->insert('carrito_detalles', $data);
+            if ($pre > -1) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
+    }
+}
+
+/////// REMOVE ////////
+
+/**
+ * @param $producto_id
+ */
+function removeProducto($producto_id)
 {
     $db = new MysqliDb();
 
-    $db->where("usuario_id", $usuario_id);
-    $results = $db->delete('usuarios');
+    $db->where("producto_id", $producto_id);
+    $results = $db->delete('productos');
 
-    $db->where("usuario_id", $usuario_id);
-    $results = $db->delete('direcciones');
+    $db->where("producto_id", $producto_id);
+    $db->delete('precios');
+    $db->delete('productos_fotos');
+    $db->delete('productos_categorias');
+    $db->delete('productos_kits');
 
     if ($results) {
 
@@ -279,316 +462,250 @@ function remove($usuario_id)
     }
 }
 
-/* @name: get
- * @param
- * @description: Obtiene todos los usuario con sus direcciones.
- * todo: Sacar dirección y crear sus propias clases dentro de este mismo módulo.
+
+/**
+ * @param $categoria_id
  */
-function get()
+function removeCategoria($categoria_id)
 {
     $db = new MysqliDb();
-    $results = $db->get('usuarios');
+
+    $db->where("categoria_id", $categoria_id);
+    $results = $db->delete('categorias');
+
+    if ($results) {
+
+        echo json_encode(1);
+    } else {
+        echo json_encode(-1);
+
+    }
+}
+
+/**
+ * @param $carrito_id
+ */
+function removeCarrito($carrito_id)
+{
+    $db = new MysqliDb();
+
+    $db->where("carrito_id", $carrito_id);
+    $results = $db->delete('carritos');
+    $db->where("carrito_id", $carrito_id);
+    $results = $db->delete('carrito_detalles');
+
+    if ($results) {
+
+        echo json_encode(1);
+    } else {
+        echo json_encode(-1);
+
+    }
+}
+
+/////// GET ////////
+
+/**
+ * @descr Obtiene los productos
+ */
+function getProductos()
+{
+    $db = new MysqliDb();
+    $results = $db->get('productos');
 
     foreach ($results as $key => $row) {
-        $db->where('usuario_id', $row['usuario_id']);
-        $results[$key]["password"] = '';
-        $direcciones = $db->get('direcciones');
-        $results[$key]['direcciones'] = $direcciones;
+
+        $db = new MysqliDb();
+        $db->where('producto_id', $row['producto_id']);
+        $db->join("categorias c", "p.categoria_id=c.categoria_id", "LEFT");
+        $categorias = $db->get('productos_categorias p', null, 'c.categoria_id, c.nombre, c.parent_id');
+        $results[$key]['categorias'] = $categorias;
+
+        $db = new MysqliDb();
+        $db->where('producto_id', $row['producto_id']);
+        $precios = $db->get('precios');
+        $results[$key]['precios'] = $precios;
+
+        $db = new MysqliDb();
+        $db->where('producto_id', $row['producto_id']);
+        $precios = $db->get('fotos');
+        $results[$key]['fotos'] = $precios;
+
+        $db = new MysqliDb();
+        $db->where('producto_id', $row['producto_id']);
+        $db->join("productos c", "p.producto_id=c.producto_id", "LEFT");
+        $kit = $db->get('productos_kits p', null, 'p.producto_kit_id, p.producto_id, p.producto_cantidad, c.producto.nombre');
+        $results[$key]['productos_kit'] = $kit;
+
+
     }
     echo json_encode($results);
 }
 
 
-/* @name: login
- * @param $mail
- * @param $password
- * @param $sucursal_id
- * @description: Valida el ingreso de un usuario.
- * todo: Sacar dirección y crear sus propias clases dentro de este mismo módulo.
+/**
+ * @descr Obtiene las categorias
  */
-function login($mail, $password, $sucursal_id)
+function getCategorias()
 {
     $db = new MysqliDb();
-    $db->where("mail", $mail);
+    $results = $db->get('categorias');
 
-    $results = $db->get("usuarios");
-
-    global $jwt_enabled;
-
-    if ($db->count > 0) {
-
-        $hash = $results[0]['password'];
-        if (password_verify($password, $hash)) {
-            $results[0]['password'] = '';
-            // Si la seguridad se encuentra habilitada, retorna el token y el usuario sin password
-            if ($jwt_enabled) {
-                echo json_encode(
-                    array(
-                        'token' => createToken(),
-                        'product' => $results[0])
-                );
-            } else {
-                echo json_encode(array('token' => '', 'product' => $results[0]));
-            }
-            addLogin($results[0]['usuario_id'], $sucursal_id, 1);
-        } else {
-            addLogin($results[0]['usuario_id'], $sucursal_id, 0);
-            echo json_encode(-1);
-        }
-    } else {
-        echo json_encode(-1);
-    }
-
-
-}
-
-/* @name: checkLastLogin
- * @param $productid
- * @description: --
- * todo: Este método podría volar, se puede verificar con jwt el último login.
- */
-function checkLastLogin($productid)
-{
-    $db = new MysqliDb();
-    $results = $db->rawQuery('select TIME_TO_SEC(TIMEDIFF(now(), last_login)) diferencia from usuarios where usuario_id = ' . $productid);
-
-    if ($db->count < 1) {
-        $db->rawQuery('update usuarios set token ="" where usuario_id =' . $productid);
-        echo(json_encode(-1));
-    } else {
-        $diff = $results[0]["diferencia"];
-
-        if (intval($diff) < 12960) {
-            echo(json_encode($results[0]));
-        } else {
-            $db->rawQuery('update usuarios set token ="" where usuario_id =' . $productid);
-            echo(json_encode(-1));
-        }
-    }
-}
-
-/* @name: create
- * @param $product
- * @description: Crea un nuevo usuario y su dirección
- * todo: Sacar dirección, el usuario puede tener varias direcciones.
- */
-function create($product)
-{
-    $db = new MysqliDb();
-    $db->startTransaction();
-    $product_decoded = checkUsuario(json_decode($product));
-    $options = ['cost' => 12];
-    $password = password_hash($product_decoded->password, PASSWORD_BCRYPT, $options);
-
-    $data = array(
-        'nombre' => $product_decoded->nombre,
-        'apellido' => $product_decoded->apellido,
-        'mail' => $product_decoded->mail,
-        'nacionalidad_id' => $product_decoded->nacionalidad_id,
-        'tipo_doc' => $product_decoded->tipo_doc,
-        'nro_doc' => $product_decoded->nro_doc,
-        'comentarios' => $product_decoded->comentarios,
-        'marcado' => $product_decoded->marcado,
-        'telefono' => $product_decoded->telefono,
-        'fecha_nacimiento' => $product_decoded->fecha_nacimiento,
-        'profesion_id' => $product_decoded->profesion_id,
-        'saldo' => $product_decoded->saldo,
-        'password' => $password,
-        'rol_id' => $product_decoded->rol_id,
-        'news_letter' => $product_decoded->news_letter
-    );
-
-    $result = $db->insert('usuarios', $data);
-    if ($result > -1) {
-
-        $data = array(
-            'usuario_id' => $result,
-            'calle' => $product_decoded->calle,
-            'nro' => $product_decoded->nro,
-            'piso' => $product_decoded->piso,
-            'puerta' => $product_decoded->puerta,
-            'ciudad_id' => $product_decoded->ciudad_id
-        );
-
-        $dir = $db->insert('direcciones', $data);
-
-        if ($dir > -1) {
-            $db->commit();
-            echo json_encode($result);
-        } else {
-            $db->rollback();
-            echo json_encode(-1);
-        }
-    } else {
-        $db->rollback();
-        echo json_encode(-1);
-    }
+    echo json_encode($results);
 }
 
 
-/* @name: clientExist
- * @param $mail
- * @description: Verifica si un usuario existe
- * todo:
+/**
+ * @descr Obtiene los productos. En caso de enviar un usuario_id != -1, se traerán todos los carritos. Solo usar esta opción cuando se aplica en la parte de administración
  */
-function productExist($mail)
-{
-    //Instancio la conexion con la DB
-    $db = new MysqliDb();
-    //Armo el filtro por email
-    $db->where("mail", $mail);
-
-    //Que me retorne el usuario filtrando por email
-    $results = $db->get("usuarios");
-
-    //retorno el resultado serializado
-    if ($db->count > 0) {
-        echo json_encode($db->count);
-    } else {
-        echo json_encode(-1);
-
-    }
-}
-
-
-/* @name: changePassword
- * @param $usuario_id
- * @param $pass_old
- * @param $pass_new
- * @description: Cambia el password, puede verificar que el anterior sea correcto o simplemente hacer un update
- * (pass_old == ''), depende de la seguridad que se requiera.
- * todo:
- */
-function changePassword($usuario_id, $pass_old, $pass_new)
+function getCarritos($usuario_id)
 {
     $db = new MysqliDb();
-
-    $db->where('usuario_id', $usuario_id);
-    $results = $db->get("usuarios");
-
-    if ($db->count > 0) {
-        $result = $results[0];
-
-        if ($pass_old == '' || password_verify($pass_old, $result['password'])) {
-
-            $options = ['cost' => 12];
-            $password = password_hash($pass_new, PASSWORD_BCRYPT, $options);
-
-            $data = array('password' => $password);
-            if ($db->update('usuarios', $data)) {
-                echo json_encode(1);
-            } else {
-                echo json_encode(-1);
-            }
-        }
-    } else {
-        echo json_encode(-1);
+    if($usuario_id != -1){
+        $db->where('usuario_id', $usuario_id);
     }
-}
+    $db->join("usuarios u", "u.usuario_id=c.usuario_id", "LEFT");
+    $results = $db->get('carritos c', null, 'c.carrito_id, c.status, c.total, c.fecha, c.usuario_id, u.nombre, u.apellido');
 
+    foreach ($results as $key => $row) {
 
-/* @name: create
- * @param $product
- * @description: Update de usuario y dirección
- * todo: Sacar dirección, el usuario puede tener varias direcciones.
- */
-function update($product)
-{
-    $db = new MysqliDb();
-    $product_decoded = checkUsuario(json_decode($product));
+        $db = new MysqliDb();
+        $db->where('carrito_id', $row['carrito_id']);
+        $db->join("productos p", "p.producto_id=c.producto_id", "LEFT");
+        $categorias = $db->get('carrito_detalles c', null, 'c.carrito_detalle_id, c.carrito_id, c.producto_id, p.nombre, c.cantidad, c.en_oferta, c.precio_unitario');
+        $results[$key]['categorias'] = $categorias;
 
-    $db->where('usuario_id', $product_decoded->usuario_id);
-
-    $data = array(
-        'nombre' => $product_decoded->nombre,
-        'apellido' => $product_decoded->apellido,
-        'mail' => $product_decoded->mail,
-        'nacionalidad_id' => $product_decoded->nacionalidad_id,
-        'tipo_doc' => $product_decoded->tipo_doc,
-        'nro_doc' => $product_decoded->nro_doc,
-        'comentarios' => $product_decoded->comentarios,
-        'marcado' => $product_decoded->marcado,
-        'telefono' => $product_decoded->telefono,
-        'fecha_nacimiento' => $product_decoded->fecha_nacimiento,
-        'profesion_id' => $product_decoded->profesion_id,
-        'saldo' => $product_decoded->saldo,
-        'rol_id' => $product_decoded->rol_id,
-        'news_letter' => $product_decoded->news_letter
-    );
-
-    if ($product_decoded->password != '') {
-        changePassword($product_decoded->usuario_id, '', $product_decoded->password);
     }
-
-    if ($db->update('usuarios', $data)) {
-
-
-        $db->where('usuario_id', $product_decoded->usuario_id);
-        $data = array(
-            'calle' => $product_decoded->calle,
-            'nro' => $product_decoded->nro,
-            'piso' => $product_decoded->piso,
-            'puerta' => $product_decoded->puerta,
-            'ciudad_id' => $product_decoded->ciudad_id
-        );
-
-        $dir = $db->update('direcciones', $data);
-
-        if ($dir) {
-            echo json_encode(1);
-        } else {
-            echo json_encode(-1);
-        }
-
-    } else {
-        echo json_encode(-1);
-    }
+    echo json_encode($results);
 }
 
 /**
- * @desciption Crea un registro de login en el histórico
- * @param $usuario_id
- * @param $sucursal_id
- * @param $ok
- */
-function addLogin($usuario_id, $sucursal_id, $ok){
-    $db = new MysqliDb();
-    $data = array('usuario_id'=> $usuario_id, 
-        'sucursal_id' => $sucursal_id,
-        'ok' => $ok);
-    
-    $db->insert('logins', $data);
-
-}
-
-/**
- * @description Verifica todos los campos de usuario para que existan
- * @param $usuario
+ * @description Verifica todos los campos de producto para que existan
+ * @param $producto
  * @return mixed
  */
-function checkUsuario($usuario) {
+function checkProducto($producto)
+{
 
 
-    $usuario->nombre = (!array_key_exists("nombre" , $usuario)) ? '' : $usuario->nombre;
-    $usuario->apellido = (!array_key_exists("apellido" , $usuario)) ? '' : $usuario->apellido;
-    $usuario->mail = (!array_key_exists("mail" , $usuario)) ? '' : $usuario->mail;
-    $usuario->nacionalidad_id = (!array_key_exists("nacionalidad_id" , $usuario)) ? 0 : $usuario->nacionalidad_id;
-    $usuario->tipo_doc = (!array_key_exists("tipo_doc" , $usuario)) ? '' : $usuario->tipo_doc;
-    $usuario->nro_doc = (!array_key_exists("nro_doc" , $usuario)) ? '' : $usuario->nro_doc;
-    $usuario->comentarios = (!array_key_exists("comentarios" , $usuario)) ? '' : $usuario->comentarios;
-    $usuario->marcado = (!array_key_exists("marcado" , $usuario)) ? 0 : $usuario->marcado;
-    $usuario->telefono = (!array_key_exists("telefono" , $usuario)) ? '' : $usuario->telefono;
-    $usuario->fecha_nacimiento = (!array_key_exists("fecha_nacimiento" , $usuario)) ? '' : $usuario->fecha_nacimiento;
-    $usuario->profesion_id = (!array_key_exists("profesion_id" , $usuario)) ? 0 : $usuario->profesion_id;
-    $usuario->saldo = (!array_key_exists("saldo" , $usuario)) ? 0.0 : $usuario->saldo;
-    $usuario->password = (!array_key_exists("password" , $usuario)) ? '' : $usuario->password;
-    $usuario->rol_id = (!array_key_exists("rol_id" , $usuario)) ? 0 : $usuario->rol_id;
-    $usuario->news_letter = (!array_key_exists("news_letter" , $usuario)) ? '' : $usuario->news_letter;
-    $usuario->calle = (!array_key_exists("calle" , $usuario)) ? '' : $usuario->calle;
-    $usuario->puerta = (!array_key_exists("puerta" , $usuario)) ? '' : $usuario->puerta;
-    $usuario->piso = (!array_key_exists("piso" , $usuario)) ? 0 : $usuario->piso;
-    $usuario->nro = (!array_key_exists("nro" , $usuario)) ? 0 : $usuario->nro;
-    $usuario->ciudad_id = (!array_key_exists("ciudad_id" , $usuario)) ? 0 : $usuario->ciudad_id;
+    $producto->nombre = (!array_key_exists("nombre", $producto)) ? '' : $producto->nombre;
+    $producto->descripcion = (!array_key_exists("descripcion", $producto)) ? '' : $producto->descripcion;
+    $producto->pto_repo = (!array_key_exists("pto_repo", $producto)) ? 0 : $producto->pto_repo;
+    $producto->sku = (!array_key_exists("sku", $producto)) ? '' : $producto->sku;
+    $producto->status = (!array_key_exists("status", $producto)) ? 1 : $producto->status;
+    $producto->vendidos = (!array_key_exists("vendidos", $producto)) ? 0 : $producto->vendidos;
+    $producto->destacado = (!array_key_exists("destacado", $producto)) ? 0 : $producto->destacado;
+    $producto->en_slider = (!array_key_exists("en_slider", $producto)) ? 0 : $producto->en_slider;
+    $producto->en_oferta = (!array_key_exists("en_oferta", $producto)) ? 0 : $producto->en_oferta;
+    $producto->producto_tipo = (!array_key_exists("producto_tipo", $producto)) ? 0 : $producto->producto_tipo;
+    $producto->precios = (!array_key_exists("precios", $producto)) ? array() : checkPrecios($producto->precios);
+    $producto->fotos = (!array_key_exists("fotos", $producto)) ? array() : checkFotos($producto->fotos);
+    $producto->categorias = (!array_key_exists("categorias", $producto)) ? array() : checkCategorias($producto->categorias);
 
-    return $usuario;
+    // Ejecuta la verificación solo si es kit
+    if ($producto->producto_tipo == 2) {
+        $producto->productos_kit = (!array_key_exists("productos_kit", $producto)) ? array() : checkProductosKit($producto->productos_kit);
+    }
+    return $producto;
+}
+
+/**
+ * @description Verifica todos los campos de Productos en un kit para que existan
+ * @param $productos_kit
+ * @return mixed
+ */
+function checkProductosKit($productos_kit)
+{
+    $productos_kit->producto_id = (!array_key_exists("producto_id", $productos_kit)) ? 0 : $productos_kit->producto_id;
+    $productos_kit->producto_cantidad = (!array_key_exists("producto_cantidad", $productos_kit)) ? '' : $productos_kit->producto_cantidad;
+
+    return $productos_kit;
+}
+
+
+/**
+ * @description Verifica todos los campos de fotos para que existan
+ * @param $fotos
+ * @return mixed
+ */
+function checkFotos($fotos)
+{
+    $fotos->producto_id = (!array_key_exists("producto_id", $fotos)) ? 0 : $fotos->producto_id;
+    $fotos->nombre = (!array_key_exists("nombre", $fotos)) ? '' : $fotos->nombre;
+    $fotos->main = (!array_key_exists("parent_id", $fotos)) ? 0 : $fotos->parent_id;
+
+    return $fotos;
+}
+
+/**
+ * @description Verifica todos los campos de precios para que existan
+ * @param $precios
+ * @return mixed
+ */
+function checkPrecios($precios)
+{
+    $precios->producto_id = (!array_key_exists("producto_id", $precios)) ? 0 : $precios->producto_id;
+    $precios->precio_tipo_id = (!array_key_exists("precio_tipo_id", $precios)) ? 0 : $precios->precio_tipo_id;
+    $precios->precio = (!array_key_exists("precio", $precios)) ? 0 : $precios->precio;
+
+    return $precios;
+}
+
+/**
+ * @description Verifica todos los campos de categoria del producto para que existan
+ * @param $categorias
+ * @return mixed
+ */
+function checkCategorias($categorias)
+{
+    $categorias->producto_id = (!array_key_exists("producto_id", $categorias)) ? 0 : $categorias->producto_id;
+    $categorias->categoria_id = (!array_key_exists("categoria_id", $categorias)) ? 0 : $categorias->categoria_id;
+
+    return $categorias;
+}
+
+
+/**
+ * @description Verifica todos los campos de categoria para que existan
+ * @param $categoria
+ * @return mixed
+ */
+function checkCategoria($categoria)
+{
+    $categoria->nombre = (!array_key_exists("nombre", $categoria)) ? '' : $categoria->nombre;
+    $categoria->parent_id = (!array_key_exists("parent_id", $categoria)) ? -1 : $categoria->parent_id;
+
+    return $categoria;
+}
+
+/**
+ * @description Verifica todos los campos de carrito para que existan
+ * @param $carrito
+ * @return mixed
+ */
+function checkCarrito($carrito)
+{
+    $carrito->status = (!array_key_exists("status", $carrito)) ? 1 : $carrito->status;
+    $carrito->total = (!array_key_exists("total", $carrito)) ? 0.0 : $carrito->total;
+    $carrito->fecha = (!array_key_exists("fecha", $carrito)) ? '' : $carrito->fecha;
+    $carrito->usuario_id = (!array_key_exists("usuario_id", $carrito)) ? -1 : $carrito->usuario_id;
+    $carrito->carrito_detalle = (!array_key_exists("carrito_detalle", $carrito)) ? array() : checkCarritoDetalle($carrito->carrito_detalle);
+
+    return $carrito;
+}
+
+/**
+ * @description Verifica todos los campos de detalle del carrito para que existan
+ * @param $detalle
+ * @return mixed
+ */
+function checkCarritoDetalle($detalle)
+{
+    $detalle->carrito_id = (!array_key_exists("carrito_id", $detalle)) ? 0 : $detalle->carrito_id;
+    $detalle->producto_id = (!array_key_exists("producto_id", $detalle)) ? 0 : $detalle->producto_id;
+    $detalle->cantidad = (!array_key_exists("cantidad", $detalle)) ? 0 : $detalle->cantidad;
+    $detalle->en_oferta = (!array_key_exists("en_oferta", $detalle)) ? 0 : $detalle->en_oferta;
+    $detalle->precio_unitario = (!array_key_exists("precio_unitario", $detalle)) ? 0 : $detalle->precio_unitario;
+
+    return $detalle;
 }

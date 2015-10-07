@@ -5,25 +5,6 @@
     var currentScriptPath = scripts[scripts.length - 1].src;
 
     angular.module('acProductos', ['ngCookies'])
-        .config(['$routeProvider', 'jwtInterceptorProvider', '$httpProvider',
-            function ($routeProvider, jwtInterceptorProvider, $httpProvider) {
-                jwtInterceptorProvider.tokenGetter = function (store) {
-                    return store.get('jwt');
-                };
-                $httpProvider.interceptors.push('jwtInterceptor');
-            }])
-        .run(function ($rootScope, store, jwtHelper, $location, ProductVars) {
-            // Para activar la seguridad en una vista, agregar data:{requiresLogin:false} dentro de $routeProvider.when
-
-            $rootScope.$on('$routeChangeStart', function (e, to) {
-                if (to && to.data && to.data.requiresLogin) {
-                    if (!store.get('jwt')) {
-                        e.preventDefault();
-                        $location.path(ProductVars.loginPath);
-                    }
-                }
-            });
-        })
         .factory('ProductService', ProductService)
         .service('ProductVars', ProductVars)
     ;
