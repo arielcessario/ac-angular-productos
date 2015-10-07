@@ -1,5 +1,5 @@
 <?php
-/* TODO: Toda la parte de seguridad tiene que estar en todos los php que hagamos
+/* TODO:
  * */
 
 
@@ -150,6 +150,7 @@ function createProducto($product)
 }
 
 /**
+ * @description Crea un precio para un producto determinado
  * @param $precio
  * @param $producto_id
  * @param $db
@@ -167,6 +168,7 @@ function createPrecios($precio, $producto_id, $db)
 }
 
 /**
+ * @description Crea la relación entre un producto y una categoría
  * @param $categoria
  * @param $producto_id
  * @param $db
@@ -185,6 +187,7 @@ function createCategorias($categoria, $producto_id, $db)
 
 
 /**
+ * @description Crea una foto para un producto determinado, main == 1 significa que la foto es la principal
  * @param $foto
  * @param $producto_id
  * @param $db
@@ -203,6 +206,7 @@ function createFotos($foto, $producto_id, $db)
 }
 
 /**
+ * @description Crea la agrupación de productos que representan al kit
  * @param $kit
  * @param $producto_id
  * @param $db
@@ -220,6 +224,7 @@ function createKits($kit, $producto_id, $db)
 }
 
 /**
+ * @description Crea una categoría, esta es la tabla paramétrica, la funcion createCategoriaS crea las relaciones
  * @param $categoria
  */
 function createCategoria($categoria)
@@ -244,6 +249,7 @@ function createCategoria($categoria)
 }
 
 /**
+ * @description Crea un carrito y su detalle
  * @param $carrito
  */
 function createCarrito($carrito)
@@ -367,7 +373,10 @@ function updateProducto($product)
     }
 }
 
-
+/**
+ * @description Modifica una categoria
+ * @param $categoria
+ */
 function updateCategoria($categoria)
 {
     $db = new MysqliDb();
@@ -391,7 +400,8 @@ function updateCategoria($categoria)
 
 
 /**
- * @param $categoria
+ * @description Modifica un carrito
+ * @param $carrito
  */
 function updateCarrito($carrito)
 {
@@ -438,6 +448,7 @@ function updateCarrito($carrito)
 /////// REMOVE ////////
 
 /**
+ * @description Elimina un producto, sus precios, sus fotos, sus categorias y sus kits
  * @param $producto_id
  */
 function removeProducto($producto_id)
@@ -464,6 +475,7 @@ function removeProducto($producto_id)
 
 
 /**
+ * @description Elimina una categoria
  * @param $categoria_id
  */
 function removeCategoria($categoria_id)
@@ -483,6 +495,7 @@ function removeCategoria($categoria_id)
 }
 
 /**
+ * @description Elimina un carrito. Esta funcionalidad no tiene una función específica ya que un carrito se da de baja lógica unicamente, no física.
  * @param $carrito_id
  */
 function removeCarrito($carrito_id)
