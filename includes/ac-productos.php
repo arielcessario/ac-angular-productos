@@ -94,8 +94,8 @@ function createProducto($product)
     $data = array(
         'nombre' => $product_decoded->nombre,
         'descripcion' => $product_decoded->descripcion,
-        'pto_repo' => $product_decoded->mail,
-        'sku' => $product_decoded->pto_repo,
+        'pto_repo' => $product_decoded->pto_repo,
+        'sku' => $product_decoded->sku,
         'status' => $product_decoded->status,
         'vendidos' => $product_decoded->vendidos,
         'destacado' => $product_decoded->destacado,
@@ -122,7 +122,6 @@ function createProducto($product)
             }
         }
         foreach ($product_decoded->fotos as $foto) {
-
             if (createFotos($foto, $result, $db)) {
                 $db->rollback();
                 echo json_encode(-1);
@@ -310,8 +309,8 @@ function updateProducto($product)
     $data = array(
         'nombre' => $product_decoded->nombre,
         'descripcion' => $product_decoded->descripcion,
-        'pto_repo' => $product_decoded->mail,
-        'sku' => $product_decoded->pto_repo,
+        'pto_repo' => $product_decoded->pto_repo,
+        'sku' => $product_decoded->sku,
         'status' => $product_decoded->status,
         'vendidos' => $product_decoded->vendidos,
         'destacado' => $product_decoded->destacado,
