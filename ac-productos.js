@@ -7,6 +7,10 @@
     angular.module('acProductos', ['ngCookies'])
         .factory('ProductService', ProductService)
         .service('ProductVars', ProductVars)
+        .factory('CategoryService', CategoryService)
+        .service('CategoryVars', CategoryVars)
+        .factory('CartService', CartService)
+        .service('CartVars', CartVars)
     ;
 
 
@@ -18,23 +22,25 @@
         var url = currentScriptPath.replace('ac-productos.js', '/includes/ac-productos.php');
 
         //Function declarations
-        service.getLogged = getLogged;
-        service.setLogged = setLogged;
-        service.checkLastLogin = checkLastLogin;
-
-        service.create = create;
-        service.remove = remove;
-        service.update = update;
-
         service.get = get;
-        service.getById = getById;
-        service.getByEmail = getByEmail;
-
-        service.login = login;
-        service.logout = logout;
-
-        service.productExist = productExist;
-        service.forgotPassword = forgotPassword;
+        //service.getCategorias = getCategorias;
+        //service.getCarritos = getCarritos;
+        //
+        //service.getProductosByParams = getProductosByParams;
+        //service.getCategoriasByParams = getCategoriasByParams;
+        //service.getCarritosByParams = getCarritosByParams;
+        //
+        //service.createProducto = createProducto;
+        //service.createCategoria = createCategoria;
+        //service.createCarrito = createCarrito;
+        //
+        //service.updateProducto = updateProducto;
+        //service.updateCategoria = updateCategoria;
+        //service.updateCarrito = updateCarrito;
+        //
+        //service.removeProducto = removeProducto;
+        //service.removeCategoria = removeCategoria;
+        //service.removeCarrito = removeCarrito;
 
         service.goToPagina = goToPagina;
         service.next = next;
@@ -43,31 +49,13 @@
         return service;
 
         //Functions
-        /** @name: remove
-         * @param usuario_id, callback
-         * @description: Elimina el usuario seleccionado.
-         */
-        function remove(usuario_id, callback) {
-            return $http.post(url,
-                {function: 'remove', 'usuario_id': usuario_id})
-                .success(function (data) {
-                    //console.log(data);
-                    if (data !== 'false') {
-
-                        callback(data);
-                    }
-                })
-                .error(function (data) {
-                    callback(data);
-                })
-        }
-
-        /** @name: get
+        /**
+         * @description Obtiene todos los productos
          * @param callback
-         * @description: Retorna todos los usuario de la base.
+         * @returns {*}
          */
         function get(callback) {
-            var urlGet = url + '?function=get';
+            var urlGet = url + '?function=getProductos';
             var $httpDefaultCache = $cacheFactory.get('$http');
             var cachedData = [];
 
@@ -78,7 +66,6 @@
                     $httpDefaultCache.remove(urlGet);
                 }
                 else {
-                    //console.log('lo');
                     cachedData = $httpDefaultCache.get(urlGet);
                     callback(cachedData);
                     return;
@@ -98,6 +85,59 @@
                     ProductVars.clearCache = false;
                 })
         }
+
+
+        /**
+         * @description Retorna la lista filtrada de productos
+         * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param value
+         * @param callback
+         */
+        function getByParams(param, value, callback) {
+            get(function (data) {
+                var parametros = param.split(',');
+                var response = data.filter(function (elem, index, array) {
+
+                    var columns = Object.keys(elem);
+
+                    var respuesta = [];
+                    for(var i = 0; i<columns.length; i++){
+                        for(var x = 0; x<parametros.length; x++){
+                            if(columns[i] == parametros[x]){
+                                if(elem[i]== value){
+                                    respuesta.push(elem);
+                                }
+                            }
+                        }
+                    }
+
+                    return respuesta;
+                });
+
+                callback(response);
+            })
+        }
+
+
+        /** @name: remove
+         * @param usuario_id, callback
+         * @description: Elimina el usuario seleccionado.
+         */
+        function remove(usuario_id, callback) {
+            return $http.post(url,
+                {function: 'remove', 'usuario_id': usuario_id})
+                .success(function (data) {
+                    //console.log(data);
+                    if (data !== 'false') {
+
+                        callback(data);
+                    }
+                })
+                .error(function (data) {
+                    callback(data);
+                })
+        }
+
 
         /** @name: getById
          * @param usuario_id, callback

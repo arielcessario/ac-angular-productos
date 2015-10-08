@@ -644,7 +644,7 @@ function checkFotos($fotos)
 {
     $fotos->producto_id = (!array_key_exists("producto_id", $fotos)) ? 0 : $fotos->producto_id;
     $fotos->nombre = (!array_key_exists("nombre", $fotos)) ? '' : $fotos->nombre;
-    $fotos->main = (!array_key_exists("parent_id", $fotos)) ? 0 : $fotos->parent_id;
+    $fotos->main = (!array_key_exists("main", $fotos)) ? 0 : $fotos->main;
 
     return $fotos;
 }
