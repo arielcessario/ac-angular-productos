@@ -35,10 +35,10 @@ if ($jwt_enabled) {
 
 
     // Las funciones en el if no necesitan usuario logged
-    if ($decoded != null &&
-        ($decoded->function == 'getProductos' ||
-            $decoded->function == 'getCategorias') ||
-        $decoded->function == 'getCarritos'
+    if ($_GET["function"] != null &&
+        ($_GET["function"] == 'getProductos' ||
+            $_GET["function"] == 'getCategorias' ||
+            $_GET["function"] == 'getCarritos')
     ) {
         $token = '';
     } else {
@@ -573,7 +573,7 @@ function getCategorias()
 function getCarritos($usuario_id)
 {
     $db = new MysqliDb();
-    if($usuario_id != -1){
+    if ($usuario_id != -1) {
         $db->where('usuario_id', $usuario_id);
     }
     $db->join("usuarios u", "u.usuario_id=c.usuario_id", "LEFT");
