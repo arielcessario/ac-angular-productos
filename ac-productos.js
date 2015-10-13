@@ -809,10 +809,11 @@
          * @description Retorna la lista filtrada de Carritos
          * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
          * @param value
+         * @param usuario_id
          * @param callback
          */
-        function getByParams(param, value, callback) {
-            get(function (data) {
+        function getByParams(param, value, usuario_id, callback) {
+            get(usuario_id, function (data) {
                 var parametros = param.split(',');
 
 
