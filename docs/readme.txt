@@ -1,4 +1,4 @@
-TODO:
+TODO: Hacer un utils para todos con las funciones mas usadas:
 
 
 Dependencies:

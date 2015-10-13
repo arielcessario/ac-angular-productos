@@ -4,7 +4,7 @@
     var scripts = document.getElementsByTagName("script");
     var currentScriptPath = scripts[scripts.length - 1].src;
 
-    angular.module('acProductos', ['ngCookies'])
+    angular.module('acProductos', [])
         .factory('ProductService', ProductService)
         .service('ProductVars', ProductVars)
         .factory('CategoryService', CategoryService)
@@ -14,8 +14,8 @@
     ;
 
 
-    ProductService.$inject = ['$http', '$cookieStore', 'store', 'ProductVars', '$cacheFactory'];
-    function ProductService($http, $cookieStore, store, ProductVars, $cacheFactory) {
+    ProductService.$inject = ['$http', 'ProductVars', '$cacheFactory'];
+    function ProductService($http, ProductVars, $cacheFactory) {
         //Variables
         var service = {};
 
@@ -23,24 +23,15 @@
 
         //Function declarations
         service.get = get;
-        //service.getCategorias = getCategorias;
-        //service.getCarritos = getCarritos;
-        //
-        //service.getProductosByParams = getProductosByParams;
-        //service.getCategoriasByParams = getCategoriasByParams;
-        //service.getCarritosByParams = getCarritosByParams;
-        //
-        //service.createProducto = createProducto;
-        //service.createCategoria = createCategoria;
-        //service.createCarrito = createCarrito;
-        //
-        //service.updateProducto = updateProducto;
-        //service.updateCategoria = updateCategoria;
-        //service.updateCarrito = updateCarrito;
-        //
-        //service.removeProducto = removeProducto;
-        //service.removeCategoria = removeCategoria;
-        //service.removeCarrito = removeCarrito;
+        service.getByParams = getByParams;
+        service.getMasVendidos = getMasVendidos;
+
+        service.create = create;
+
+        service.update = update;
+
+        service.remove = remove;
+
 
         service.goToPagina = goToPagina;
         service.next = next;
@@ -96,40 +87,60 @@
         function getByParams(param, value, callback) {
             get(function (data) {
                 var parametros = param.split(',');
-                var response = data.filter(function (elem, index, array) {
 
-                    var columns = Object.keys(elem);
 
-                    var respuesta = [];
-                    for(var i = 0; i<columns.length; i++){
-                        for(var x = 0; x<parametros.length; x++){
-                            if(columns[i] == parametros[x]){
-                                if(elem[i]== value){
-                                    respuesta.push(elem);
+                var respuesta = [];
+                for (var y = 0; y < data.length; y++) {
+                    var columns = Object.keys(data[y]);
+
+                    for (var i = 0; i < columns.length; i++) {
+                        for (var x = 0; x < parametros.length; x++) {
+                            if (columns[i] == parametros[x]) {
+
+                                var base = '' + data[y][Object.keys(data[y])[i]];
+                                var valor = '' + value;
+                                if (
+                                    ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
+                                    (!exact_match && base.indexOf(valor) > -1)
+                                ) {
+                                    respuesta.push(data[y]);
+                                    x = parametros.length;
+                                    i = columns.length;
                                 }
                             }
                         }
                     }
-
-                    return respuesta;
-                });
-
-                callback(response);
+                }
+                callback(respuesta);
             })
         }
 
+        /**
+         * @description Retorna los primero 8 productos mas vendidos
+         * @param callback
+         */
+        function getMasVendidos(callback) {
+            getProductos(function (data) {
+                var response = data.sort(function (a, b) {
+                    return b.vendidos - a.vendidos;
+                });
+
+                callback(response.slice(0, 8));
+            });
+        }
 
         /** @name: remove
-         * @param usuario_id, callback
-         * @description: Elimina el usuario seleccionado.
+         * @param producto_id
+         * @param callback
+         * @description: Elimina el producto seleccionado.
          */
-        function remove(usuario_id, callback) {
+        function remove(producto_id, callback) {
             return $http.post(url,
-                {function: 'remove', 'usuario_id': usuario_id})
+                {function: 'removeProducto', 'producto_id': producto_id})
                 .success(function (data) {
                     //console.log(data);
                     if (data !== 'false') {
-
+                        ProductVars.clearCache = true;
                         callback(data);
                     }
                 })
@@ -138,88 +149,18 @@
                 })
         }
 
-
-        /** @name: getById
-         * @param usuario_id, callback
-         * @description: Retorna el usuario que tenga el id enviado.
-         */
-        function getById(id, callback) {
-            get(function (data) {
-                var response = data.filter(function (elem, index, array) {
-                    return elem.usuario_id == id;
-                })[0];
-                callback(response);
-            });
-        }
-
         /**
-         * todo: Hay que definir si vale la pena
-         */
-        function checkLastLogin() {
-
-        }
-
-
-        /** @name: productExist
-         * @param mail
-         * @description: Verifica que el mail no exista en la base.
-         */
-        function productExist(mail, callback) {
-            return $http.post(url,
-                {'function': 'existeUsuario', 'mail': mail})
-                .success(function (data) {
-                    callback(data);
-                })
-                .error(function (data) {
-                })
-        }
-
-        /**@name: logout
-         @description: Logout
-         */
-        function logout() {
-            store.remove('jwt');
-            $cookieStore.remove('product');
-            ProductVars.clearCache = true;
-        }
-
-
-        /**
-         *
-         * @description: realiza login
-         * @param mail
-         * @param password
-         * @param sucursal_id
+         * @description: Crea un producto.
+         * @param producto
          * @param callback
          * @returns {*}
          */
-        function login(mail, password, sucursal_id, callback) {
-            return $http.post(url,
-                {'function': 'login', 'mail': mail, 'password': password, 'sucursal_id': sucursal_id})
-                .success(function (data) {
-                    if (data != -1) {
-                        $cookieStore.put('product', data.product);
-                        store.set('jwt', data.token);
-                    }
-                    callback(data);
-                })
-                .error(function (data) {
-                    callback(data);
-                })
-        }
-
-        /**
-         * @description: Crea un usuario.
-         * @param usuario
-         * @param callback
-         * @returns {*}
-         */
-        function create(usuario, callback) {
+        function create(producto, callback) {
 
             return $http.post(url,
                 {
-                    'function': 'create',
-                    'product': JSON.stringify(usuario)
+                    'function': 'createProducto',
+                    'producto': JSON.stringify(producto)
                 })
                 .success(function (data) {
                     ProductVars.clearCache = true;
@@ -231,92 +172,20 @@
                 });
         }
 
-        /** @name: getLogged
-         * @description: Retorna si existe una cookie de usuario.
-         */
-        function getLogged() {
-            var globals = $cookieStore.get('product');
-
-            if (globals !== undefined && globals.product !== undefined) {
-                return globals;
-            } else {
-                return false;
-            }
-        }
-
-        /** @name: setLogged
-         * @param product
-         * @description: Setea al usuario en una cookie. No está agregado al login ya que no en todos los casos se necesita cookie.
-         */
-        function setLogged(product) {
-            $cookieStore.set('product', product);
-        }
-
-        function changePassword(usuario_id, pass_old, pass_new, callback) {
-
-            return $http.post(url,
-                {
-                    function: 'changePassword',
-                    usuario_id: usuario_id,
-                    pass_old: pass_old,
-                    pass_new: pass_new
-                })
-                .success(function (data) {
-                    ProductVars.clearCache = true;
-                    callback(data);
-                })
-                .error(function (data) {
-                    callback(data);
-                })
-        }
-
-        /** @name: getByEmail
-         * @param mail
-         * @param callback
-         * @description: Obtiene al usuario filtrado por mail del cache completo.
-         */
-        function getByEmail(mail, callback) {
-            get(function (data) {
-                var response = data.filter(function (elem, index, array) {
-                    return elem.mail == mail;
-                })[0];
-                callback(response);
-            });
-        }
 
         /** @name: update
-         * @param usuario
+         * @param producto
          * @param callback
-         * @description: Realiza update al usuario.
+         * @description: Realiza update al producto.
          */
-        function update(usuario, callback) {
+        function update(producto, callback) {
             return $http.post(url,
                 {
-                    'function': 'update',
-                    'product': JSON.stringify(usuario)
+                    'function': 'updateProducto',
+                    'producto': JSON.stringify(producto)
                 })
                 .success(function (data) {
                     ProductVars.clearCache = true;
-                    callback(data);
-                })
-                .error(function (data) {
-                    callback(data);
-                });
-        }
-
-
-        /** @name: forgotPassword
-         * @param email
-         * @description: Genera y reenvia el pass al usuario.
-         */
-        function forgotPassword(email, callback) {
-
-            return $http.post(url,
-                {
-                    'function': 'forgotPassword',
-                    'email': email
-                })
-                .success(function (data) {
                     callback(data);
                 })
                 .error(function (data) {
@@ -421,10 +290,9 @@
 
     }
 
-
     ProductVars.$inject = [];
     /**
-     *
+     * @description Almacena variables temporales de productos
      * @constructor
      */
     function ProductVars() {
@@ -441,8 +309,594 @@
         // Indica si se debe limpiar el caché la próxima vez que se solicite un get
         this.clearCache = true;
 
-        // Path al login
-        this.loginPath = '/login';
+    }
+
+
+
+    CategoryService.$inject = ['$http', 'CategoryVars', '$cacheFactory'];
+    function CategoryService($http, CategoryVars, $cacheFactory) {
+        //Variables
+        var service = {};
+
+        var url = currentScriptPath.replace('ac-productos.js', '/includes/ac-productos.php');
+
+        //Function declarations
+        service.get = get;
+        service.getByParams = getByParams;
+
+        service.create = create;
+
+        service.update = update;
+
+        service.remove = remove;
+
+
+        service.goToPagina = goToPagina;
+        service.next = next;
+        service.prev = prev;
+
+        return service;
+
+        //Functions
+        /**
+         * @description Obtiene todos los categoryos
+         * @param callback
+         * @returns {*}
+         */
+        function get(callback) {
+            var urlGet = url + '?function=getCategoryos';
+            var $httpDefaultCache = $cacheFactory.get('$http');
+            var cachedData = [];
+
+
+            // Verifica si existe el cache de categoryos
+            if ($httpDefaultCache.get(urlGet) != undefined) {
+                if (CategoryVars.clearCache) {
+                    $httpDefaultCache.remove(urlGet);
+                }
+                else {
+                    cachedData = $httpDefaultCache.get(urlGet);
+                    callback(cachedData);
+                    return;
+                }
+            }
+
+
+            return $http.get(urlGet, {cache: true})
+                .success(function (data) {
+                    $httpDefaultCache.put(urlGet, data);
+                    CategoryVars.clearCache = false;
+                    CategoryVars.paginas = (data.length % CategoryVars.paginacion == 0) ? parseInt(data.length / CategoryVars.paginacion) : parseInt(data.length / CategoryVars.paginacion) + 1;
+                    callback(data);
+                })
+                .error(function (data) {
+                    callback(data);
+                    CategoryVars.clearCache = false;
+                })
+        }
+
+
+        /**
+         * @description Retorna la lista filtrada de categoryos
+         * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param value
+         * @param callback
+         */
+        function getByParams(param, value, callback) {
+            get(function (data) {
+                var parametros = param.split(',');
+
+
+                var respuesta = [];
+                for (var y = 0; y < data.length; y++) {
+                    var columns = Object.keys(data[y]);
+
+                    for (var i = 0; i < columns.length; i++) {
+                        for (var x = 0; x < parametros.length; x++) {
+                            if (columns[i] == parametros[x]) {
+
+                                var base = '' + data[y][Object.keys(data[y])[i]];
+                                var valor = '' + value;
+                                if (
+                                    ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
+                                    (!exact_match && base.indexOf(valor) > -1)
+                                ) {
+                                    respuesta.push(data[y]);
+                                    x = parametros.length;
+                                    i = columns.length;
+                                }
+                            }
+                        }
+                    }
+                }
+                callback(respuesta);
+            })
+        }
+
+
+        /** @name: remove
+         * @param categoryo_id
+         * @param callback
+         * @description: Elimina el categoryo seleccionado.
+         */
+        function remove(categoryo_id, callback) {
+            return $http.post(url,
+                {function: 'removeCategoryo', 'categoryo_id': categoryo_id})
+                .success(function (data) {
+                    //console.log(data);
+                    if (data !== 'false') {
+                        CategoryVars.clearCache = true;
+                        callback(data);
+                    }
+                })
+                .error(function (data) {
+                    callback(data);
+                })
+        }
+
+        /**
+         * @description: Crea un categoryo.
+         * @param categoryo
+         * @param callback
+         * @returns {*}
+         */
+        function create(categoryo, callback) {
+
+            return $http.post(url,
+                {
+                    'function': 'createCategoryo',
+                    'categoryo': JSON.stringify(categoryo)
+                })
+                .success(function (data) {
+                    CategoryVars.clearCache = true;
+                    callback(data);
+                })
+                .error(function (data) {
+                    CategoryVars.clearCache = true;
+                    callback(data);
+                });
+        }
+
+
+        /** @name: update
+         * @param categoryo
+         * @param callback
+         * @description: Realiza update al categoryo.
+         */
+        function update(categoryo, callback) {
+            return $http.post(url,
+                {
+                    'function': 'updateCategoryo',
+                    'categoryo': JSON.stringify(categoryo)
+                })
+                .success(function (data) {
+                    CategoryVars.clearCache = true;
+                    callback(data);
+                })
+                .error(function (data) {
+                    callback(data);
+                });
+        }
+
+        /**
+         * Para el uso de la páginación, definir en el controlador las siguientes variables:
+         *
+         vm.start = 0;
+         vm.pagina = CategoryVars.pagina;
+         CategoryVars.paginacion = 5; Cantidad de registros por página
+         vm.end = CategoryVars.paginacion;
+
+
+         En el HTML, en el ng-repeat agregar el siguiente filtro: limitTo:appCtrl.end:appCtrl.start;
+
+         Agregar un botón de next:
+         <button ng-click="appCtrl.next()">next</button>
+
+         Agregar un botón de prev:
+         <button ng-click="appCtrl.prev()">prev</button>
+
+         Agregar un input para la página:
+         <input type="text" ng-keyup="appCtrl.goToPagina()" ng-model="appCtrl.pagina">
+
+         */
+
+
+        /**
+         * @description: Ir a página
+         * @param pagina
+         * @returns {*}
+         * uso: agregar un método
+         vm.goToPagina = function () {
+                vm.start= CategoryService.goToPagina(vm.pagina).start;
+            };
+         */
+        function goToPagina(pagina) {
+
+            if (isNaN(pagina) || pagina < 1) {
+                CategoryVars.pagina = 1;
+                return CategoryVars;
+            }
+
+            if (pagina > CategoryVars.paginas) {
+                CategoryVars.pagina = CategoryVars.paginas;
+                return CategoryVars;
+            }
+
+            CategoryVars.pagina = pagina - 1;
+            CategoryVars.start = CategoryVars.pagina * CategoryVars.paginacion;
+            return CategoryVars;
+
+        }
+
+        /**
+         * @name next
+         * @description Ir a próxima página
+         * @returns {*}
+         * uso agregar un metodo
+         vm.next = function () {
+                vm.start = CategoryService.next().start;
+                vm.pagina = CategoryVars.pagina;
+            };
+         */
+        function next() {
+
+            if (CategoryVars.pagina + 1 > CategoryVars.paginas) {
+                return CategoryVars;
+            }
+            CategoryVars.start = (CategoryVars.pagina * CategoryVars.paginacion);
+            CategoryVars.pagina = CategoryVars.pagina + 1;
+            //CategoryVars.end = CategoryVars.start + CategoryVars.paginacion;
+            return CategoryVars;
+        }
+
+        /**
+         * @name previous
+         * @description Ir a página anterior
+         * @returns {*}
+         * uso, agregar un método
+         vm.prev = function () {
+                vm.start= CategoryService.prev().start;
+                vm.pagina = CategoryVars.pagina;
+            };
+         */
+        function prev() {
+
+
+            if (CategoryVars.pagina - 2 < 0) {
+                return CategoryVars;
+            }
+
+            //CategoryVars.end = CategoryVars.start;
+            CategoryVars.start = (CategoryVars.pagina - 2 ) * CategoryVars.paginacion;
+            CategoryVars.pagina = CategoryVars.pagina - 1;
+            return CategoryVars;
+        }
+
+
+    }
+
+    CategoryVars.$inject = [];
+    /**
+     * @description Almacena variables temporales de categoryos
+     * @constructor
+     */
+    function CategoryVars() {
+        // Cantidad de páginas total del recordset
+        this.paginas = 1;
+        // Página seleccionada
+        this.pagina = 1;
+        // Cantidad de registros por página
+        this.paginacion = 10;
+        // Registro inicial, no es página, es el registro
+        this.start = 0;
+
+
+        // Indica si se debe limpiar el caché la próxima vez que se solicite un get
+        this.clearCache = true;
+
+    }
+
+
+
+    CartService.$inject = ['$http', 'CartVars', '$cacheFactory'];
+    function CartService($http, CartVars, $cacheFactory) {
+        //Variables
+        var service = {};
+
+        var url = currentScriptPath.replace('ac-productos.js', '/includes/ac-productos.php');
+
+        //Function declarations
+        service.get = get;
+        service.getByParams = getByParams;
+
+        service.create = create;
+
+        service.update = update;
+
+        service.remove = remove;
+
+
+        service.addToCart = addToCart;
+        service.removeFromCart = removeFromCart;
+        service.reloadLastCart = reloadLastCart; // Invoca a getByParam con status 0, si existe cargalo como carrito.
+        service.checkOut = checkOut; // Es solo invocar a update con el estado cambiado.
+
+
+        service.goToPagina = goToPagina;
+        service.next = next;
+        service.prev = prev;
+
+        return service;
+
+        //Functions
+        /**
+         * @description Obtiene todos los cartos
+         * @param usuario_id, en caso traer todos los carritos, debe ser -1; Está así para que si el módulo está en la web, nunca llegue al cliente la lista completa de pedidos;
+         * @param callback
+         * @returns {*}
+         */
+        function get(usuario_id, callback) {
+            var urlGet = url + '?function=getCarritos&usuario_id=';
+            var $httpDefaultCache = $cacheFactory.get('$http');
+            var cachedData = [];
+
+
+            // Verifica si existe el cache de Carritos
+            if ($httpDefaultCache.get(urlGet) != undefined) {
+                if (CartVars.clearCache) {
+                    $httpDefaultCache.remove(urlGet);
+                }
+                else {
+                    cachedData = $httpDefaultCache.get(urlGet);
+                    callback(cachedData);
+                    return;
+                }
+            }
+
+
+            return $http.get(urlGet, {cache: true})
+                .success(function (data) {
+                    $httpDefaultCache.put(urlGet + usuario_id, data);
+                    CartVars.clearCache = false;
+                    CartVars.paginas = (data.length % CartVars.paginacion == 0) ? parseInt(data.length / CartVars.paginacion) : parseInt(data.length / CartVars.paginacion) + 1;
+                    callback(data);
+                })
+                .error(function (data) {
+                    callback(data);
+                    CartVars.clearCache = false;
+                })
+        }
+
+
+        /**
+         * @description Retorna la lista filtrada de Carritos
+         * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param value
+         * @param callback
+         */
+        function getByParams(param, value, callback) {
+            get(function (data) {
+                var parametros = param.split(',');
+
+
+                var respuesta = [];
+                for (var y = 0; y < data.length; y++) {
+                    var columns = Object.keys(data[y]);
+
+                    for (var i = 0; i < columns.length; i++) {
+                        for (var x = 0; x < parametros.length; x++) {
+                            if (columns[i] == parametros[x]) {
+
+                                var base = '' + data[y][Object.keys(data[y])[i]];
+                                var valor = '' + value;
+                                if (
+                                    ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
+                                    (!exact_match && base.indexOf(valor) > -1)
+                                ) {
+                                    respuesta.push(data[y]);
+                                    x = parametros.length;
+                                    i = columns.length;
+                                }
+                            }
+                        }
+                    }
+                }
+                callback(respuesta);
+            })
+        }
+
+
+        /** @name: remove
+         * @param carto_id
+         * @param callback
+         * @description: Elimina el carto seleccionado.
+         */
+        function remove(carto_id, callback) {
+            return $http.post(url,
+                {function: 'removeCarto', 'carto_id': carto_id})
+                .success(function (data) {
+                    //console.log(data);
+                    if (data !== 'false') {
+                        CartVars.clearCache = true;
+                        callback(data);
+                    }
+                })
+                .error(function (data) {
+                    callback(data);
+                })
+        }
+
+        /**
+         * @description: Crea un carto.
+         * @param carto
+         * @param callback
+         * @returns {*}
+         */
+        function create(carto, callback) {
+
+            return $http.post(url,
+                {
+                    'function': 'createCarto',
+                    'carto': JSON.stringify(carto)
+                })
+                .success(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                })
+                .error(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                });
+        }
+
+
+        /** @name: update
+         * @param carto
+         * @param callback
+         * @description: Realiza update al carto.
+         */
+        function update(carto, callback) {
+            return $http.post(url,
+                {
+                    'function': 'updateCarto',
+                    'carto': JSON.stringify(carto)
+                })
+                .success(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                })
+                .error(function (data) {
+                    callback(data);
+                });
+        }
+
+        /**
+         * Para el uso de la páginación, definir en el controlador las siguientes variables:
+         *
+         vm.start = 0;
+         vm.pagina = CartVars.pagina;
+         CartVars.paginacion = 5; Cantidad de registros por página
+         vm.end = CartVars.paginacion;
+
+
+         En el HTML, en el ng-repeat agregar el siguiente filtro: limitTo:appCtrl.end:appCtrl.start;
+
+         Agregar un botón de next:
+         <button ng-click="appCtrl.next()">next</button>
+
+         Agregar un botón de prev:
+         <button ng-click="appCtrl.prev()">prev</button>
+
+         Agregar un input para la página:
+         <input type="text" ng-keyup="appCtrl.goToPagina()" ng-model="appCtrl.pagina">
+
+         */
+
+
+        /**
+         * @description: Ir a página
+         * @param pagina
+         * @returns {*}
+         * uso: agregar un método
+         vm.goToPagina = function () {
+                vm.start= CartService.goToPagina(vm.pagina).start;
+            };
+         */
+        function goToPagina(pagina) {
+
+            if (isNaN(pagina) || pagina < 1) {
+                CartVars.pagina = 1;
+                return CartVars;
+            }
+
+            if (pagina > CartVars.paginas) {
+                CartVars.pagina = CartVars.paginas;
+                return CartVars;
+            }
+
+            CartVars.pagina = pagina - 1;
+            CartVars.start = CartVars.pagina * CartVars.paginacion;
+            return CartVars;
+
+        }
+
+        /**
+         * @name next
+         * @description Ir a próxima página
+         * @returns {*}
+         * uso agregar un metodo
+         vm.next = function () {
+                vm.start = CartService.next().start;
+                vm.pagina = CartVars.pagina;
+            };
+         */
+        function next() {
+
+            if (CartVars.pagina + 1 > CartVars.paginas) {
+                return CartVars;
+            }
+            CartVars.start = (CartVars.pagina * CartVars.paginacion);
+            CartVars.pagina = CartVars.pagina + 1;
+            //CartVars.end = CartVars.start + CartVars.paginacion;
+            return CartVars;
+        }
+
+        /**
+         * @name previous
+         * @description Ir a página anterior
+         * @returns {*}
+         * uso, agregar un método
+         vm.prev = function () {
+                vm.start= CartService.prev().start;
+                vm.pagina = CartVars.pagina;
+            };
+         */
+        function prev() {
+
+
+            if (CartVars.pagina - 2 < 0) {
+                return CartVars;
+            }
+
+            //CartVars.end = CartVars.start;
+            CartVars.start = (CartVars.pagina - 2 ) * CartVars.paginacion;
+            CartVars.pagina = CartVars.pagina - 1;
+            return CartVars;
+        }
+
+
+    }
+
+    CartVars.$inject = ['$rootScope'];
+    /**
+     * @description Almacena variables temporales de Carritos
+     * @param $rootScope
+     * @constructor
+     */
+    function CartVars($rootScope) {
+        // Cantidad de páginas total del recordset
+        this.paginas = 1;
+        // Página seleccionada
+        this.pagina = 1;
+        // Cantidad de registros por página
+        this.paginacion = 10;
+        // Registro inicial, no es página, es el registro
+        this.start = 0;
+
+
+        // Indica si se debe limpiar el caché la próxima vez que se solicite un get
+        this.clearCache = true;
+
+        // Transmite el aviso de actualización
+        this.broadcast = function () {
+            $rootScope.$broadcast("CartVars")
+        };
+
+        // Recibe aviso de actualización
+        this.listen = function (callback) {
+            $rootScope.$on("CartVars", callback)
+        };
+
     }
 
 })();

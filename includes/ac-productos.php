@@ -62,11 +62,11 @@ if ($decoded != null) {
     } else if ($decoded->function == 'updateCarrito') {
         updateCarrito($decoded->carrito);
     } else if ($decoded->function == 'removeProducto') {
-        removeProducto($decoded->producto);
+        removeProducto($decoded->producto_id);
     } else if ($decoded->function == 'removeCategoria') {
-        removeCategoria($decoded->categoria);
+        removeCategoria($decoded->categoria_id);
     } else if ($decoded->function == 'removeCarrito') {
-        removeCarrito($decoded->carrito);
+        removeCarrito($decoded->carrito_id);
     }
 } else {
     $function = $_GET["function"];
