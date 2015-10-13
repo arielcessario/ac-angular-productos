@@ -14,8 +14,8 @@
     ;
 
 
-    ProductService.$inject = ['$http', 'ProductVars', '$cacheFactory'];
-    function ProductService($http, ProductVars, $cacheFactory) {
+    ProductService.$inject = ['$http', 'ProductVars', '$cacheFactory', 'AcUtils'];
+    function ProductService($http, ProductVars, $cacheFactory, AcUtils) {
         //Variables
         var service = {};
 
@@ -84,34 +84,9 @@
          * @param value
          * @param callback
          */
-        function getByParams(param, value, callback) {
+        function getByParams(params, values, exact_match, callback) {
             get(function (data) {
-                var parametros = param.split(',');
-
-
-                var respuesta = [];
-                for (var y = 0; y < data.length; y++) {
-                    var columns = Object.keys(data[y]);
-
-                    for (var i = 0; i < columns.length; i++) {
-                        for (var x = 0; x < parametros.length; x++) {
-                            if (columns[i] == parametros[x]) {
-
-                                var base = '' + data[y][Object.keys(data[y])[i]];
-                                var valor = '' + value;
-                                if (
-                                    ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
-                                    (!exact_match && base.indexOf(valor) > -1)
-                                ) {
-                                    respuesta.push(data[y]);
-                                    x = parametros.length;
-                                    i = columns.length;
-                                }
-                            }
-                        }
-                    }
-                }
-                callback(respuesta);
+                AcUtils.getByParams(params, values, exact_match, data, callback);
             })
         }
 
@@ -312,8 +287,8 @@
     }
 
 
-    CategoryService.$inject = ['$http', 'CategoryVars', '$cacheFactory'];
-    function CategoryService($http, CategoryVars, $cacheFactory) {
+    CategoryService.$inject = ['$http', 'CategoryVars', '$cacheFactory', 'AcUtils'];
+    function CategoryService($http, CategoryVars, $cacheFactory, AcUtils) {
         //Variables
         var service = {};
 
@@ -381,34 +356,10 @@
          * @param value
          * @param callback
          */
-        function getByParams(param, value, callback) {
+        function getByParams(params, values, exact_match, callback) {
             get(function (data) {
-                var parametros = param.split(',');
 
-
-                var respuesta = [];
-                for (var y = 0; y < data.length; y++) {
-                    var columns = Object.keys(data[y]);
-
-                    for (var i = 0; i < columns.length; i++) {
-                        for (var x = 0; x < parametros.length; x++) {
-                            if (columns[i] == parametros[x]) {
-
-                                var base = '' + data[y][Object.keys(data[y])[i]];
-                                var valor = '' + value;
-                                if (
-                                    ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
-                                    (!exact_match && base.indexOf(valor) > -1)
-                                ) {
-                                    respuesta.push(data[y]);
-                                    x = parametros.length;
-                                    i = columns.length;
-                                }
-                            }
-                        }
-                    }
-                }
-                callback(respuesta);
+                AcUtils.getByParams(params, values, exact_match, data, callback);
             })
         }
 
@@ -596,8 +547,8 @@
     }
 
 
-    CartService.$inject = ['$http', 'CartVars', '$cacheFactory'];
-    function CartService($http, CartVars, $cacheFactory) {
+    CartService.$inject = ['$http', 'CartVars', '$cacheFactory', 'AcUtils'];
+    function CartService($http, CartVars, $cacheFactory, AcUtils) {
         //Variables
         var service = {};
 
@@ -744,14 +695,16 @@
         }
 
         /**
-         * Retorna el último carrito en estado Iniciado para el usuario seleccionado, este método es solo desde el cliente, por eso no hace falta usuario_id, el sistema ya va a tener solo un subset de los carritos.
+         * Retorna el último carrito en estado Iniciado para el usuario seleccionado.
+         * @param usuario_id
          * @param callback
          */
-        function reloadLastCart(callback){
+        function reloadLastCart(usuario_id, callback){
 
-            getByParams('status', 0, function(data){
-                callback(data);
-            })
+            get(usuario_id, function(data){
+                AcUtils.getByParams('status', 0, true, data, callback);
+            });
+
         }
 
         /**
@@ -807,39 +760,15 @@
 
         /**
          * @description Retorna la lista filtrada de Carritos
-         * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
-         * @param value
+         * @param params -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param values
+         * @param exact_match
          * @param usuario_id
          * @param callback
          */
-        function getByParams(param, value, usuario_id, callback) {
+        function getByParams(params, values, exact_match, usuario_id, callback) {
             get(usuario_id, function (data) {
-                var parametros = param.split(',');
-
-
-                var respuesta = [];
-                for (var y = 0; y < data.length; y++) {
-                    var columns = Object.keys(data[y]);
-
-                    for (var i = 0; i < columns.length; i++) {
-                        for (var x = 0; x < parametros.length; x++) {
-                            if (columns[i] == parametros[x]) {
-
-                                var base = '' + data[y][Object.keys(data[y])[i]];
-                                var valor = '' + value;
-                                if (
-                                    ( exact_match && base.toUpperCase() == valor.toUpperCase()) ||
-                                    (!exact_match && base.indexOf(valor) > -1)
-                                ) {
-                                    respuesta.push(data[y]);
-                                    x = parametros.length;
-                                    i = columns.length;
-                                }
-                            }
-                        }
-                    }
-                }
-                callback(respuesta);
+                AcUtils.getByParams(params, values, exact_match, data, callback);
             })
         }
 

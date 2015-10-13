@@ -3,6 +3,7 @@ TODO: Hacer un utils para todos con las funciones mas usadas:
 
 Dependencies:
 ac-angular-usuarios
+ac-angular-utils
 
 
 Comentarios:
