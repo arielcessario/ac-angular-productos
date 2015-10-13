@@ -312,7 +312,6 @@
     }
 
 
-
     CategoryService.$inject = ['$http', 'CategoryVars', '$cacheFactory'];
     function CategoryService($http, CategoryVars, $cacheFactory) {
         //Variables
@@ -597,7 +596,6 @@
     }
 
 
-
     CartService.$inject = ['$http', 'CartVars', '$cacheFactory'];
     function CartService($http, CartVars, $cacheFactory) {
         //Variables
@@ -609,7 +607,7 @@
         service.get = get;
         service.getByParams = getByParams;
 
-        service.create = create;
+        service.create = create; // El carrito se crea si no hay un carrito en estado 0 que se pueda usar. Siempre primero se trae en el controlador, se verifica si existe uno en Iniciado, si no existe se crea.
 
         service.update = update;
 
@@ -617,6 +615,7 @@
 
 
         service.addToCart = addToCart;
+        service.removeFromCart = updateProductInCart;
         service.removeFromCart = removeFromCart;
         service.reloadLastCart = reloadLastCart; // Invoca a getByParam con status 0, si existe cargalo como carrito.
         service.checkOut = checkOut; // Es solo invocar a update con el estado cambiado.
@@ -630,7 +629,106 @@
 
         //Functions
         /**
-         * @description Obtiene todos los cartos
+         * @descripcion Agrega un producto al carrito. El producto es un extracto del producto total (cantidad, precio, producto_id, foto[0].url)
+         * @param carrito_id
+         * @param producto
+         * @param callback
+         */
+        function addToCart(carrito_id, producto, callback) {
+
+            var carrito_detalle = {
+                carrito_id: carrito_id,
+                producto_id: producto.producto_id,
+                cantidad: producto.cantidad,
+                en_oferta: producto.en_oferta,
+                precio_unitario: producto.precio_unitario
+            };
+
+            return $http.post(url,
+                {
+                    'function': 'createCarritoDetalle',
+                    'carrito_detalle': JSON.stringify(carrito_detalle)
+                })
+                .success(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                })
+                .error(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                });
+        }
+
+        /**
+         * Modifica el detalle de un carrito
+         * @param carrito_detalle
+         * @param callback
+         * @returns {*}
+         */
+        function updateProductInCart(carrito_detalle, callback) {
+            return $http.post(url,
+                {
+                    'function': 'updateCarritoDetalle',
+                    'carrito_detalle': JSON.stringify(carrito_detalle)
+                })
+                .success(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                })
+                .error(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                });
+        }
+
+
+        /**
+         * Remueve un item del carrito
+         * @param carrito_detalle_id
+         * @param callback
+         * @returns {*}
+         */
+        function removeFromCart(carrito_detalle_id, callback) {
+            return $http.post(url,
+                {
+                    'function': 'removeCarritoDetalle',
+                    'carrito_detalle_id': JSON.stringify(carrito_detalle_id)
+                })
+                .success(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                })
+                .error(function (data) {
+                    CartVars.clearCache = true;
+                    callback(data);
+                });
+        }
+
+        /**
+         * Retorna el último carrito en estado Iniciado para el usuario seleccionado, este método es solo desde el cliente, por eso no hace falta usuario_id, el sistema ya va a tener solo un subset de los carritos.
+         * @param callback
+         */
+        function reloadLastCart(callback){
+
+            getByParams('status', 0, function(data){
+                callback(data);
+            })
+        }
+
+        /**
+         * Cambia el estado a Pedido
+         * @param carrito_id
+         * @param callback
+         */
+        function checkOut(carrito_id, callback){
+            update({carrito_id:carrito_id, status:1}, function(data){
+                callback(data);
+            })
+        }
+
+
+        /**
+         * @description Obtiene todos los carritos
          * @param usuario_id, en caso traer todos los carritos, debe ser -1; Está así para que si el módulo está en la web, nunca llegue al cliente la lista completa de pedidos;
          * @param callback
          * @returns {*}
@@ -707,13 +805,13 @@
 
 
         /** @name: remove
-         * @param carto_id
+         * @param carrito_id
          * @param callback
-         * @description: Elimina el carto seleccionado.
+         * @description: Elimina el carrito seleccionado.
          */
-        function remove(carto_id, callback) {
+        function remove(carrito_id, callback) {
             return $http.post(url,
-                {function: 'removeCarto', 'carto_id': carto_id})
+                {function: 'removeCarrito', 'carrito_id': carrito_id})
                 .success(function (data) {
                     //console.log(data);
                     if (data !== 'false') {
@@ -727,17 +825,17 @@
         }
 
         /**
-         * @description: Crea un carto.
-         * @param carto
+         * @description: Crea un carrito.
+         * @param carrito
          * @param callback
          * @returns {*}
          */
-        function create(carto, callback) {
+        function create(carrito, callback) {
 
             return $http.post(url,
                 {
-                    'function': 'createCarto',
-                    'carto': JSON.stringify(carto)
+                    'function': 'createCarrito',
+                    'carrito': JSON.stringify(carrito)
                 })
                 .success(function (data) {
                     CartVars.clearCache = true;
@@ -751,15 +849,15 @@
 
 
         /** @name: update
-         * @param carto
+         * @param carrito
          * @param callback
-         * @description: Realiza update al carto.
+         * @description: Realiza update al carrito.
          */
-        function update(carto, callback) {
+        function update(carrito, callback) {
             return $http.post(url,
                 {
-                    'function': 'updateCarto',
-                    'carto': JSON.stringify(carto)
+                    'function': 'updateCarrito',
+                    'carrito': JSON.stringify(carrito)
                 })
                 .success(function (data) {
                     CartVars.clearCache = true;

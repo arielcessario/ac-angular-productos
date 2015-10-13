@@ -66,7 +66,7 @@ CREATE TABLE precios (
 # CARRITO - Encabezado de la compra
 CREATE TABLE carritos (
   carrito_id int(11) NOT NULL AUTO_INCREMENT,
-  status int(11) NOT NULL COMMENT '0 - Cancelado, 1 - Pedido, 2 - Confirmado, 3 - Entregado',
+  status int(11) NOT NULL COMMENT '0 - Iniciado, 1 - Pedido, 2 - Confirmado, 3 - Entregado, 4 - Cancelado',
   total decimal(8,2) NOT NULL,
   fecha timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   usuario_id int(11) NOT NULL DEFAULT '-1',

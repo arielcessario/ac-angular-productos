@@ -55,16 +55,22 @@ if ($decoded != null) {
         createCategoria($decoded->categoria);
     } else if ($decoded->function == 'createCarrito') {
         createCarrito($decoded->carrito);
+    } else if ($decoded->function == 'createCarritoDetalle') {
+        createCarritoDetalle($decoded->carrito_detalle);
     } else if ($decoded->function == 'updateProducto') {
         updateProducto($decoded->producto);
     } else if ($decoded->function == 'updateCategoria') {
         updateCategoria($decoded->categoria);
+    } else if ($decoded->function == 'updateCarritoDetalle') {
+        updateCarritoDetalle($decoded->carrito_detalle);
     } else if ($decoded->function == 'updateCarrito') {
         updateCarrito($decoded->carrito);
     } else if ($decoded->function == 'removeProducto') {
         removeProducto($decoded->producto_id);
     } else if ($decoded->function == 'removeCategoria') {
         removeCategoria($decoded->categoria_id);
+    } else if ($decoded->function == 'removeCarritoDetalle') {
+        removeCarritoDetalle($decoded->carrito_detalle_id);
     } else if ($decoded->function == 'removeCarrito') {
         removeCarrito($decoded->carrito_id);
     }
@@ -248,6 +254,34 @@ function createCategoria($categoria)
 }
 
 /**
+ * @description Crea un detalle de carrito
+ * @param $carrito_detalle
+ */
+function createCarritoDetalle($carrito_detalle)
+{
+    $db = new MysqliDb();
+    $db->startTransaction();
+    $carrito_detalle_decoded = checkCarritoDetalle(json_decode($carrito_detalle));
+
+    $data = array(
+        'carrito_id' => $carrito_detalle_decoded->carrito_id,
+        'producto_id' => $carrito_detalle_decoded->producto_id,
+        'cantidad' => $carrito_detalle_decoded->cantidad,
+        'en_oferta' => $carrito_detalle_decoded->en_oferta,
+        'precio_unitario' => $carrito_detalle_decoded->precio_unitario
+    );
+
+    $result = $db->insert('carrito_detalles', $data);
+    if ($result > -1) {
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
+    }
+}
+
+/**
  * @description Crea un carrito y su detalle
  * @param $carrito
  */
@@ -267,22 +301,22 @@ function createCarrito($carrito)
     $result = $db->insert('carritos', $data);
     if ($result > -1) {
 
-        foreach ($carrito_decoded->detalles as $detalle) {
-            $data = array(
-                'carrito_id' => $result,
-                'producto_id' => $detalle->producto_id,
-                'cantidad' => $detalle->cantidad,
-                'en_oferta' => $detalle->en_oferta,
-                'precio_unitario' => $detalle->precio_unitario
-            );
-
-            $pre = $db->insert('carrito_detalles', $data);
-            if ($pre > -1) {
-                $db->rollback();
-                echo json_encode(-1);
-                return;
-            }
-        }
+//        foreach ($carrito_decoded->detalles as $detalle) {
+//            $data = array(
+//                'carrito_id' => $result,
+//                'producto_id' => $detalle->producto_id,
+//                'cantidad' => $detalle->cantidad,
+//                'en_oferta' => $detalle->en_oferta,
+//                'precio_unitario' => $detalle->precio_unitario
+//            );
+//
+//            $pre = $db->insert('carrito_detalles', $data);
+//            if ($pre > -1) {
+//                $db->rollback();
+//                echo json_encode(-1);
+//                return;
+//            }
+//        }
 
         $db->commit();
         echo json_encode($result);
@@ -396,6 +430,33 @@ function updateCategoria($categoria)
         echo json_encode(-1);
     }
 }
+/**
+ * @description Modifica un detalle de carrito
+ * @param $carrito_detalle
+ */
+function updateCarritoDetalle($carrito_detalle)
+{
+    $db = new MysqliDb();
+    $db->startTransaction();
+    $carrito_detalle_decoded = checkCarritoDetalle(json_decode($carrito_detalle));
+    $db->where('carrito_detalle_id', $carrito_detalle_decoded->categoria_id);
+    $data = array(
+        'carrito_id' => $carrito_detalle_decoded->carrito_id,
+        'producto_id' => $carrito_detalle_decoded->producto_id,
+        'cantidad' => $carrito_detalle_decoded->cantidad,
+        'en_oferta' => $carrito_detalle_decoded->en_oferta,
+        'precio_unitario' => $carrito_detalle_decoded->precio_unitario
+    );
+
+    $result = $db->update('carrito_detalles', $data);
+    if ($result) {
+        $db->commit();
+        echo json_encode($result);
+    } else {
+        $db->rollback();
+        echo json_encode(-1);
+    }
+}
 
 
 /**
@@ -417,24 +478,24 @@ function updateCarrito($carrito)
 
     $result = $db->update('carritos', $data);
     if ($result) {
-        $db->where('carrito_id', $carrito_decoded->producto_id);
-        $result = $db->delete('carritos');
-        foreach ($carrito_decoded->detalles as $detalle) {
-            $data = array(
-                'carrito_id' => $result,
-                'producto_id' => $detalle->producto_id,
-                'cantidad' => $detalle->cantidad,
-                'en_oferta' => $detalle->en_oferta,
-                'precio_unitario' => $detalle->precio_unitario
-            );
-
-            $pre = $db->insert('carrito_detalles', $data);
-            if ($pre > -1) {
-                $db->rollback();
-                echo json_encode(-1);
-                return;
-            }
-        }
+//        $db->where('carrito_id', $carrito_decoded->producto_id);
+//        $result = $db->delete('carritos');
+//        foreach ($carrito_decoded->detalles as $detalle) {
+//            $data = array(
+//                'carrito_id' => $result,
+//                'producto_id' => $detalle->producto_id,
+//                'cantidad' => $detalle->cantidad,
+//                'en_oferta' => $detalle->en_oferta,
+//                'precio_unitario' => $detalle->precio_unitario
+//            );
+//
+//            $pre = $db->insert('carrito_detalles', $data);
+//            if ($pre > -1) {
+//                $db->rollback();
+//                echo json_encode(-1);
+//                return;
+//            }
+//        }
 
         $db->commit();
         echo json_encode($result);
@@ -483,6 +544,26 @@ function removeCategoria($categoria_id)
 
     $db->where("categoria_id", $categoria_id);
     $results = $db->delete('categorias');
+
+    if ($results) {
+
+        echo json_encode(1);
+    } else {
+        echo json_encode(-1);
+
+    }
+}
+
+/**
+ * @description Elimina un detalle de carrito
+ * @param $carrito_detalle_id
+ */
+function removeCarritoDetalle($carrito_detalle_id)
+{
+    $db = new MysqliDb();
+
+    $db->where("carrito_detalle_id", $carrito_detalle_id);
+    $results = $db->delete('carrito_detalles');
 
     if ($results) {
 
