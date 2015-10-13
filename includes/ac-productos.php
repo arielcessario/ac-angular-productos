@@ -35,10 +35,10 @@ if ($jwt_enabled) {
 
 
     // Las funciones en el if no necesitan usuario logged
-    if ($_GET["function"] != null &&
-        ($_GET["function"] == 'getProductos' ||
-            $_GET["function"] == 'getCategorias' ||
-            $_GET["function"] == 'getCarritos')
+    if (($decoded == null) && (($_GET["function"] != null) &&
+            ($_GET["function"] == 'getProductos' ||
+                $_GET["function"] == 'getCategorias' ||
+                $_GET["function"] == 'getCarritos'))
     ) {
         $token = '';
     } else {
@@ -540,13 +540,13 @@ function getProductos()
 
         $db = new MysqliDb();
         $db->where('producto_id', $row['producto_id']);
-        $precios = $db->get('fotos');
+        $precios = $db->get('productos_fotos');
         $results[$key]['fotos'] = $precios;
 
         $db = new MysqliDb();
-        $db->where('producto_id', $row['producto_id']);
+        $db->where('c.producto_id', $row['producto_id']);
         $db->join("productos c", "p.producto_id=c.producto_id", "LEFT");
-        $kit = $db->get('productos_kits p', null, 'p.producto_kit_id, p.producto_id, p.producto_cantidad, c.producto.nombre');
+        $kit = $db->get('productos_kits p', null, 'p.producto_kit_id, p.producto_id, p.producto_cantidad, c.nombre');
         $results[$key]['productos_kit'] = $kit;
 
 
