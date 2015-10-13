@@ -655,7 +655,7 @@ function getCarritos($usuario_id)
 {
     $db = new MysqliDb();
     if ($usuario_id != -1) {
-        $db->where('usuario_id', $usuario_id);
+        $db->where('c.usuario_id', $usuario_id);
     }
     $db->join("usuarios u", "u.usuario_id=c.usuario_id", "LEFT");
     $results = $db->get('carritos c', null, 'c.carrito_id, c.status, c.total, c.fecha, c.usuario_id, u.nombre, u.apellido');
