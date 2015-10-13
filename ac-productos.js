@@ -620,8 +620,6 @@
         service.reloadLastCart = reloadLastCart; // Invoca a getByParam con status 0, si existe cargalo como carrito.
         service.checkOut = checkOut; // Es solo invocar a update con el estado cambiado.
 
-        service.getCartTotal = getCartTotal;
-
         service.goToPagina = goToPagina;
         service.next = next;
         service.prev = prev;
