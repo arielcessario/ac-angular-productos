@@ -620,6 +620,7 @@
         service.reloadLastCart = reloadLastCart; // Invoca a getByParam con status 0, si existe cargalo como carrito.
         service.checkOut = checkOut; // Es solo invocar a update con el estado cambiado.
 
+        service.getCartTotal = getCartTotal;
 
         service.goToPagina = goToPagina;
         service.next = next;
@@ -650,6 +651,15 @@
                     'carrito_detalle': JSON.stringify(carrito_detalle)
                 })
                 .success(function (data) {
+
+
+                    // Agrega un detalle al carrito y le avisa a todo el sistema para que se refresque
+                    if(data != -1){
+                        carrito_detalle.carrito_detalle_id = data;
+                        CartVars.carrito.push(carrito_detalle);
+                        CartVars.broadcast();
+                    }
+
                     CartVars.clearCache = true;
                     callback(data);
                 })
@@ -672,6 +682,24 @@
                     'carrito_detalle': JSON.stringify(carrito_detalle)
                 })
                 .success(function (data) {
+
+                    // Agrega un detalle al carrito y le avisa a todo el sistema para que se refresque
+
+                    if(data != -1){
+                        var index = 0;
+                        for (var i = 0; i<CartVars.carrito.length; i++){
+                            if(CartVars.carrito[i].carrito_detalle_id == carrito_detalle.carrito_detalle_id){
+
+                                index = i;
+                            }
+                        }
+
+                        CartVars.carrito[index] = {};
+                        CartVars.carrito[index] = carrito_detalle;
+                        CartVars.broadcast();
+                    }
+
+
                     CartVars.clearCache = true;
                     callback(data);
                 })
@@ -695,6 +723,19 @@
                     'carrito_detalle_id': JSON.stringify(carrito_detalle_id)
                 })
                 .success(function (data) {
+
+                    if(data != -1){
+                        var index = 0;
+                        for (var i = 0; i<CartVars.carrito.length; i++){
+                            if(CartVars.carrito[i].carrito_detalle_id == carrito_detalle.carrito_detalle_id){
+                                index = i;
+                            }
+                        }
+
+                        CartVars.splice(index, 1);
+                        CartVars.broadcast();
+                    }
+
                     CartVars.clearCache = true;
                     callback(data);
                 })
@@ -980,6 +1021,25 @@
         this.paginacion = 10;
         // Registro inicial, no es página, es el registro
         this.start = 0;
+
+        // Carrito Temporal
+        this.carrito = [];
+        // Total de productos
+        this.carrito_cantidad_productos = function(){
+            var cantidad = 0;
+            for(var i=0; i<this.carrito.length;i++){
+                cantidad = cantidad + this.carrito[i].cantidad;
+            }
+            return cantidad;
+        };
+        // Total precio
+        this.carrito_total = function(){
+            var precio = 0.0;
+            for(var i=0; i<this.carrito.length;i++){
+                precio = precio + (this.carrito[i].cantidad * this.carrito[i].precio_unitario);
+            }
+            return precio;
+        };
 
 
         // Indica si se debe limpiar el caché la próxima vez que se solicite un get
