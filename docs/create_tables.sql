@@ -83,3 +83,11 @@ CREATE TABLE carrito_detalles (
   precio_unitario decimal(8,2) NOT NULL,
   PRIMARY KEY (carrito_detalle_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+# PROVEEDORES POR PRODUCTO - Relación entre productos y proveedores
+CREATE TABLE productos_proveedores (
+  producto_id int(11) NOT NULL,
+  proveedor_id int(11) NOT NULL,
+  PRIMARY KEY (producto_id,proveedor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

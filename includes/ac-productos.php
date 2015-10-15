@@ -134,6 +134,13 @@ function createProducto($product)
                 return;
             }
         }
+        foreach ($product_decoded->proveedores as $proveedor) {
+            if (createProveedores($proveedor, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
 
         // Solo para cuando es kit
         if ($product_decoded->producto_tipo == 2) {
@@ -208,6 +215,24 @@ function createFotos($foto, $producto_id, $db)
 
     $fot = $db->insert('productos_fotos', $data);
     return ($fot > -1) ? true : false;
+}
+
+/**
+ * @description Crea una relación entre producto y proveedor
+ * @param $proveedor_id
+ * @param $producto_id
+ * @param $db
+ * @return bool
+ */
+function createProveedores($proveedor, $producto_id, $db)
+{
+    $data = array(
+        'proveedor_id' => $proveedor->proveedor_id,
+        'producto_id' => $producto_id
+    );
+
+    $pro = $db->insert('productos_proveedores', $data);
+    return ($pro > -1) ? true : false;
 }
 
 /**
@@ -361,6 +386,7 @@ function updateProducto($product)
     $db->delete('productos_fotos');
     $db->delete('productos_categorias');
     $db->delete('productos_kits');
+    $db->delete('productos_proveedores');
 
     if ($result > -1) {
 
@@ -381,6 +407,14 @@ function updateProducto($product)
         foreach ($product_decoded->fotos as $foto) {
 
             if (createFotos($foto, $result, $db)) {
+                $db->rollback();
+                echo json_encode(-1);
+                return;
+            }
+        }
+
+        foreach ($product_decoded->proveedores as $proveedor) {
+            if (createProveedores($proveedor, $result, $db)) {
                 $db->rollback();
                 echo json_encode(-1);
                 return;
@@ -523,6 +557,7 @@ function removeProducto($producto_id)
     $db->delete('productos_fotos');
     $db->delete('productos_categorias');
     $db->delete('productos_kits');
+    $db->delete('productos_proveedores');
 
     if ($results) {
 
@@ -544,6 +579,26 @@ function removeCategoria($categoria_id)
 
     $db->where("categoria_id", $categoria_id);
     $results = $db->delete('categorias');
+
+    if ($results) {
+
+        echo json_encode(1);
+    } else {
+        echo json_encode(-1);
+
+    }
+}
+
+/**
+ * @description Elimina todas las relaciones entre producto y proveedor
+ * @param $producto_id
+ */
+function removeProveedores($producto_id)
+{
+    $db = new MysqliDb();
+
+    $db->where("producto_id", $producto_id);
+    $results = $db->delete('productos_proveedores');
 
     if ($results) {
 
@@ -694,6 +749,7 @@ function checkProducto($producto)
     $producto->precios = (!array_key_exists("precios", $producto)) ? array() : checkPrecios($producto->precios);
     $producto->fotos = (!array_key_exists("fotos", $producto)) ? array() : checkFotos($producto->fotos);
     $producto->categorias = (!array_key_exists("categorias", $producto)) ? array() : checkCategorias($producto->categorias);
+    $producto->proveedores = (!array_key_exists("proveedores", $producto)) ? array() : checkProductosProveedores($producto->proveedores);
 
     // Ejecuta la verificación solo si es kit
     if ($producto->producto_tipo == 2) {
@@ -713,6 +769,18 @@ function checkProductosKit($productos_kit)
     $productos_kit->producto_cantidad = (!array_key_exists("producto_cantidad", $productos_kit)) ? '' : $productos_kit->producto_cantidad;
 
     return $productos_kit;
+}
+/**
+ * @description Verifica todos los campos de Proveedores y Productos existan
+ * @param $productos_proveedores
+ * @return mixed
+ */
+function checkProductosProveedores($productos_proveedores)
+{
+    $productos_proveedores->producto_id = (!array_key_exists("producto_id", $productos_proveedores)) ? 0 : $productos_proveedores->producto_id;
+    $productos_proveedores->proveedor_id = (!array_key_exists("proveedor_id", $productos_proveedores)) ? '' : $productos_proveedores->proveedor_id;
+
+    return $productos_proveedores;
 }
 
 
