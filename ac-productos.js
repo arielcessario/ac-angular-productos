@@ -313,17 +313,17 @@
 
         //Functions
         /**
-         * @description Obtiene todos los categoryos
+         * @description Obtiene todos los categorias
          * @param callback
          * @returns {*}
          */
         function get(callback) {
-            var urlGet = url + '?function=getCategoryos';
+            var urlGet = url + '?function=getCategorias';
             var $httpDefaultCache = $cacheFactory.get('$http');
             var cachedData = [];
 
 
-            // Verifica si existe el cache de categoryos
+            // Verifica si existe el cache de categorias
             if ($httpDefaultCache.get(urlGet) != undefined) {
                 if (CategoryVars.clearCache) {
                     $httpDefaultCache.remove(urlGet);
@@ -371,7 +371,7 @@
          */
         function remove(categoryo_id, callback) {
             return $http.post(url,
-                {function: 'removeCategoryo', 'categoryo_id': categoryo_id})
+                {function: 'removeCategoria', 'categoryo_id': categoryo_id})
                 .success(function (data) {
                     //console.log(data);
                     if (data !== 'false') {
@@ -394,7 +394,7 @@
 
             return $http.post(url,
                 {
-                    'function': 'createCategoryo',
+                    'function': 'createCategoria',
                     'categoryo': JSON.stringify(categoryo)
                 })
                 .success(function (data) {
@@ -416,7 +416,7 @@
         function update(categoryo, callback) {
             return $http.post(url,
                 {
-                    'function': 'updateCategoryo',
+                    'function': 'updateCategoria',
                     'categoryo': JSON.stringify(categoryo)
                 })
                 .success(function (data) {
