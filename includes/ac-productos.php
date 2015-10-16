@@ -464,6 +464,7 @@ function updateCategoria($categoria)
         echo json_encode(-1);
     }
 }
+
 /**
  * @description Modifica un detalle de carrito
  * @param $carrito_detalle
@@ -659,35 +660,227 @@ function removeCarrito($carrito_id)
 function getProductos()
 {
     $db = new MysqliDb();
-    $results = $db->get('productos');
 
-    foreach ($results as $key => $row) {
+//    $results = $db->get('productos');
+    $results = $db->rawQuery('SELECT
+    p.producto_id,
+    p.nombre nombreProducto,
+    p.descripcion,
+    p.pto_repo,
+    p.sku,
+    p.status,
+    p.vendidos,
+    p.destacado,
+    p.producto_tipo,
+    p.en_slider,
+    p.en_oferta,
+    c.categoria_id,
+    c.nombre nombreCategoria,
+    c.parent_id,
+    ps.producto_kit_id,
+    ps.producto_id productoKit,
+    ps.producto_cantidad,
+    pr.precio_id,
+    pr.precio_tipo_id,
+    pr.precio,
+    f.producto_foto_id,
+    f.main,
+    f.nombre nombreFoto,
+    u.usuario_id,
+    u.nombre nombreUsuario,
+    u.apellido
+FROM
+    productos p
+        LEFT JOIN
+    productos_categorias pc ON p.producto_id = pc.producto_id
+        LEFT JOIN
+    categorias c ON c.categoria_id = pc.categoria_id
+        LEFT JOIN
+    precios pr ON p.producto_id = pr.producto_id
+        LEFT JOIN
+    productos_fotos f ON p.producto_id = f.producto_id
+        LEFT JOIN
+    productos_kits ps ON p.producto_id = ps.producto_id
+        LEFT JOIN
+    productos_proveedores pro ON pro.producto_id = p.producto_id
+        LEFT JOIN
+    usuarios u ON u.usuario_id = pro.proveedor_id
+GROUP BY p.producto_id , p.nombre , p.descripcion , p.pto_repo , p.sku , p.status , 
+p.vendidos , p.destacado , p.producto_tipo , p.en_slider , p.en_oferta , c.categoria_id , 
+c.nombre , c.parent_id , ps.producto_kit_id , ps.producto_id , ps.producto_cantidad , pr.precio_id , pr.precio_tipo_id , 
+pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apellido
+;');
 
-        $db = new MysqliDb();
-        $db->where('producto_id', $row['producto_id']);
-        $db->join("categorias c", "p.categoria_id=c.categoria_id", "LEFT");
-        $categorias = $db->get('productos_categorias p', null, 'c.categoria_id, c.nombre, c.parent_id');
-        $results[$key]['categorias'] = $categorias;
 
-        $db = new MysqliDb();
-        $db->where('producto_id', $row['producto_id']);
-        $precios = $db->get('precios');
-        $results[$key]['precios'] = $precios;
+    $final = array();
+    foreach ($results as $row) {
 
-        $db = new MysqliDb();
-        $db->where('producto_id', $row['producto_id']);
-        $precios = $db->get('productos_fotos');
-        $results[$key]['fotos'] = $precios;
+        if (!isset($final[$row["producto_id"]])) {
+            $final[$row["producto_id"]] = array(
+                'producto_id' => $row["producto_id"],
+                'nombre' => $row["nombreProducto"],
+                'descripcion' => $row["descripcion"],
+                'pto_repo' => $row["pto_repo"],
+                'sku' => $row["sku"],
+                'status' => $row["status"],
+                'vendidos' => $row["vendidos"],
+                'destacado' => $row["destacado"],
+                'producto_tipo' => $row["producto_tipo"],
+                'en_slider' => $row["en_slider"],
+                'en_oferta' => $row["en_oferta"],
+                'categorias' => array(),
+                'precios' => array(),
+                'fotos' => array(),
+                'kits' => array(),
+                'proveedores' => array()
+            );
+        }
+        $have_cat = false;
+        if ($row["categoria_id"] !== null) {
 
-        $db = new MysqliDb();
-        $db->where('c.producto_id', $row['producto_id']);
-        $db->join("productos c", "p.producto_id=c.producto_id", "LEFT");
-        $kit = $db->get('productos_kits p', null, 'p.producto_kit_id, p.producto_id, p.producto_cantidad, c.nombre');
-        $results[$key]['productos_kit'] = $kit;
+            if (sizeof($final[$row['producto_id']]['categorias']) > 0) {
+                foreach ($final[$row['producto_id']]['categorias'] as $cat) {
+                    if ($cat['categoria_id'] == $row["categoria_id"]) {
+                        $have_cat = true;
+                    }
+                }
+            } else {
+                $final[$row['producto_id']]['categorias'][] = array(
+                    'categoria_id' => $row['categoria_id'],
+                    'nombre' => $row['nombreCategoria'],
+                    'parent_id' => $row['parent_id']
+                );
+
+                $have_cat = true;
+            }
+
+            if(!$have_cat){
+                array_push($final[$row['producto_id']]['categorias'], array(
+                    'categoria_id' => $row['categoria_id'],
+                    'nombre' => $row['nombreCategoria'],
+                    'parent_id' => $row['parent_id']
+                ));
+            }
+        }
 
 
+        $have_pre = false;
+        if ($row["precio_id"] !== null) {
+
+            if (sizeof($final[$row['producto_id']]['precios']) > 0) {
+                foreach ($final[$row['producto_id']]['precios'] as $cat) {
+                    if ($cat['precio_id'] == $row["precio_id"]) {
+                        $have_pre = true;
+                    }
+                }
+            } else {
+                $final[$row['producto_id']]['precios'][] = array(
+                    'precio_id' => $row['precio_id'],
+                    'precio_tipo_id' => $row['precio_tipo_id'],
+                    'precio' => $row['precio']
+                );
+
+                $have_pre = true;
+            }
+
+            if(!$have_pre){
+                array_push($final[$row['producto_id']]['precios'], array(
+                    'precio_id' => $row['precio_id'],
+                    'precio_tipo_id' => $row['precio_tipo_id'],
+                    'precio' => $row['precio']
+                ));
+            }
+        }
+
+
+        $have_fot = false;
+        if ($row["producto_foto_id"] !== null) {
+
+            if (sizeof($final[$row['producto_id']]['fotos']) > 0) {
+                foreach ($final[$row['producto_id']]['fotos'] as $cat) {
+                    if ($cat['producto_foto_id'] == $row["producto_foto_id"]) {
+                        $have_fot = true;
+                    }
+                }
+            } else {
+                $final[$row['producto_id']]['fotos'][] = array(
+                    'producto_foto_id' => $row['producto_foto_id'],
+                    'nombre' => $row['nombreFoto'],
+                    'main' => $row['main']
+                );
+
+                $have_fot = true;
+            }
+
+            if(!$have_fot){
+                array_push($final[$row['producto_id']]['fotos'], array(
+                    'producto_foto_id' => $row['producto_foto_id'],
+                    'nombre' => $row['nombreFoto'],
+                    'main' => $row['main']
+                ));
+            }
+        }
+
+        $have_kit = false;
+        if ($row["producto_kit_id"] !== null) {
+
+            if (sizeof($final[$row['producto_id']]['kits']) > 0) {
+                foreach ($final[$row['producto_id']]['kits'] as $cat) {
+                    if ($cat['producto_kit_id'] == $row["producto_kit_id"]) {
+                        $have_kit = true;
+                    }
+                }
+            } else {
+                $final[$row['producto_id']]['kits'][] = array(
+                    'producto_kit_id' => $row['producto_kit_id'],
+                    'producto_id' => $row['productoKit'],
+                    'cantidad' => $row['cantidad']
+                );
+
+                $have_kit = true;
+            }
+
+            if(!$have_kit){
+                array_push($final[$row['producto_id']]['kits'], array(
+                    'producto_kito_id' => $row['producto_kito_id'],
+                    'producto_id' => $row['productoKit'],
+                    'cantidad' => $row['cantidad']
+                ));
+            }
+        }
+
+
+
+
+        $have_pro = false;
+        if ($row["usuario_id"] !== null) {
+
+            if (sizeof($final[$row['producto_id']]['proveedores']) > 0) {
+                foreach ($final[$row['producto_id']]['proveedores'] as $cat) {
+                    if ($cat['usuario_id'] == $row["usuario_id"]) {
+                        $have_pro = true;
+                    }
+                }
+            } else {
+                $final[$row['producto_id']]['proveedores'][] = array(
+                    'usuario_id' => $row['usuario_id'],
+                    'nombre' => $row['nombreUsuario'],
+                    'apellido' => $row['apellido']
+                );
+
+                $have_pro = true;
+            }
+
+            if(!$have_pro){
+                array_push($final[$row['producto_id']]['proveedores'], array(
+                    'usuario_id' => $row['usuario_id'],
+                    'nombre' => $row['nombreUsuario'],
+                    'apellido' => $row['apellido']
+                ));
+            }
+        }
     }
-    echo json_encode($results);
+    echo json_encode(array_values($final));
 }
 
 
@@ -770,6 +963,7 @@ function checkProductosKit($productos_kit)
 
     return $productos_kit;
 }
+
 /**
  * @description Verifica todos los campos de Proveedores y Productos existan
  * @param $productos_proveedores
