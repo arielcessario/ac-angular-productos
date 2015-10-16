@@ -82,8 +82,6 @@ if ($decoded != null) {
         getCategorias();
     } elseif ($function == 'getCarritos') {
         getCarritos($_GET["usuario_id"]);
-    } elseif ($function == 'getItemsByCategory') {
-        getItemsByCategory();
     }
 }
 
@@ -692,19 +690,6 @@ function getProductos()
     echo json_encode($results);
 }
 
-/**
- * @descr Retorna la cantidad de productos por categoria
- */
-function getItemsByCategory()
-{
-    $db = new MysqliDb();
-    $results = $db->rawQuery(
-        "SELECT categoria_id, COUNT(categoria_id) as total
-          FROM productos_categorias
-          GROUP BY categoria_id;");
-
-    echo json_encode($results);
-}
 
 /**
  * @descr Obtiene las categorias
