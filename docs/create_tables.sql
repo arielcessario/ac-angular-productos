@@ -80,7 +80,7 @@ CREATE TABLE carrito_detalles (
   producto_id int(11) NOT NULL DEFAULT '-1',
   cantidad int(11) NOT NULL,
   en_oferta int(1) DEFAULT '0' COMMENT '0 - No, 1 - Si',
-  precio_unitario decimal(8,2) NOT NULL,
+  precio_unitario decimal(8,2) NOT NULL DEFAULT 0.00,
   PRIMARY KEY (carrito_detalle_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 

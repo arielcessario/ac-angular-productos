@@ -95,7 +95,7 @@
          * @param callback
          */
         function getMasVendidos(callback) {
-            getProductos(function (data) {
+            get(function (data) {
                 var response = data.sort(function (a, b) {
                     return b.vendidos - a.vendidos;
                 });
@@ -297,6 +297,7 @@
         //Function declarations
         service.get = get;
         service.getByParams = getByParams;
+        service.getItemsByCategory = getItemsByCategory;
 
         service.create = create;
 
@@ -363,6 +364,39 @@
             })
         }
 
+        /**
+         *
+         * @param callback
+         * @returns {*}
+         */
+        function getItemsByCategory(callback) {
+            var urlGet = url + '?function=getItemsByCategory';
+            var $httpDefaultCache = $cacheFactory.get('$http');
+            var cachedData = [];
+
+            // Verifica si existe el cache de categorias
+            if ($httpDefaultCache.get(urlGet) != undefined) {
+                if (CategoryVars.clearCache) {
+                    $httpDefaultCache.remove(urlGet);
+                }
+                else {
+                    cachedData = $httpDefaultCache.get(urlGet);
+                    callback(cachedData);
+                    return;
+                }
+            }
+
+            return $http.get(urlGet, {cache: true})
+                .success(function (data) {
+                    $httpDefaultCache.put(urlGet, data);
+                    CategoryVars.clearCache = false;
+                    callback(data);
+                })
+                .error(function (data) {
+                    callback(data);
+                    CategoryVars.clearCache = false;
+                })
+        }
 
         /** @name: remove
          * @param categoryo_id
