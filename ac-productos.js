@@ -25,6 +25,7 @@
         service.get = get;
         service.getByParams = getByParams;
         service.getMasVendidos = getMasVendidos;
+        service.getByCategoria = getByCategoria;
 
         service.create = create;
 
@@ -101,6 +102,28 @@
                 });
 
                 callback(response.slice(0, 8));
+            });
+        }
+
+        /**
+         * @description Retorna un listado de productos filtrando por la categoria
+         * @param categoria_id
+         * @param callback
+         */
+        function getByCategoria(categoria_id, callback) {
+            var productos = [];
+            get(function (data) {
+                if(data == undefined || data.length == 0)
+                    return callback(productos);
+
+                data.forEach(function(producto){
+                    if(producto === undefined || producto.categorias === undefined)
+                        return callback(productos);
+
+                    if (categoria_id == producto.categorias[0].categoria_id)
+                        productos.push(producto);
+                });
+                return callback(productos);
             });
         }
 
@@ -297,6 +320,7 @@
         //Function declarations
         service.get = get;
         service.getByParams = getByParams;
+        service.getItemsByCategory = getItemsByCategory;
 
         service.create = create;
 
@@ -361,6 +385,20 @@
 
                 AcUtils.getByParams(params, values, exact_match, data, callback);
             })
+        }
+
+        /**
+         *
+         * @param callback
+         * @returns {*}
+         */
+        function getItemsByCategory(categoria_id, productos) {
+            var count = 0;
+            productos.forEach(function(producto){
+                if (categoria_id == producto.categorias[0].categoria_id)
+                    count = count + 1;
+            });
+            return count;
         }
 
         /** @name: remove
