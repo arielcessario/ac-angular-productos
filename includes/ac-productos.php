@@ -842,7 +842,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
 
             if(!$have_kit){
                 array_push($final[$row['producto_id']]['kits'], array(
-                    'producto_kito_id' => $row['producto_kito_id'],
+                    'producto_kit_id' => $row['producto_kit_id'],
                     'producto_id' => $row['productoKit'],
                     'cantidad' => $row['cantidad']
                 ));
