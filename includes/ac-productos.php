@@ -700,7 +700,7 @@ FROM
         LEFT JOIN
     productos_fotos f ON p.producto_id = f.producto_id
         LEFT JOIN
-    productos_kits ps ON p.producto_id = ps.producto_id
+    productos_kits ps ON p.producto_id = ps.parent_id
         LEFT JOIN
     productos_proveedores pro ON pro.producto_id = p.producto_id
         LEFT JOIN
