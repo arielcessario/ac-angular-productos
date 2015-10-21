@@ -388,7 +388,7 @@ function updateProducto($product)
     $db->delete('productos_kits');
     $db->delete('productos_proveedores');
 
-    if ($result > -1) {
+    if ($result) {
 
         foreach ($product_decoded->precios as $precio) {
             if (createPrecios($precio, $product_decoded->producto_id, $db)) {
