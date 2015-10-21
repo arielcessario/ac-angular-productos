@@ -945,7 +945,7 @@ function checkProducto($producto)
 
     // Ejecuta la verificación solo si es kit
     if ($producto->producto_tipo == 2) {
-        $producto->productos_kit = (!array_key_exists("productos_kit", $producto)) ? array() : checkProductosKit($producto->productos_kit);
+        $producto->kits = (!array_key_exists("kits", $producto)) ? array() : checkProductosKit($producto->kits);
     }
     return $producto;
 }
