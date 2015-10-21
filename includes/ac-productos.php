@@ -424,7 +424,7 @@ function updateProducto($product)
 
         // Solo para cuando es kit
         if ($product_decoded->producto_tipo == 2) {
-            foreach ($product_decoded->productos_kit as $producto_kit) {
+            foreach ($product_decoded->kits as $producto_kit) {
                 if (!createKits($producto_kit, $product_decoded->producto_id, $db)) {
                     $db->rollback();
                     echo json_encode(-1);
