@@ -20,7 +20,7 @@ CREATE TABLE productos (
 CREATE TABLE productos_kits (
   producto_kit_id int(11) NOT NULL AUTO_INCREMENT COMMENT 'Este ID es el ID del producto en la tabla de productos que es tipo kit',
   producto_id int(11) NOT NULL,
-  parent_id int(11) NOT NULL,
+  parent_id int(11) NOT NULL DEFAULT 0,
   producto_cantidad int(11) NOT NULL COMMENT 'Cantidad de unidades del producto en el kit u oferta, esto descuenta desde el stock',
   PRIMARY KEY (producto_kit_id),
   KEY KIT_PROD_IDX (producto_id)

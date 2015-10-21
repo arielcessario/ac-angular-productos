@@ -957,6 +957,7 @@ function checkProducto($producto)
 function checkProductosKit($productos_kit)
 {
     $productos_kit->producto_id = (!array_key_exists("producto_id", $productos_kit)) ? 0 : $productos_kit->producto_id;
+    $productos_kit->parent_id = (!array_key_exists("parent_id", $productos_kit)) ? 0 : $productos_kit->parent_id;
     $productos_kit->producto_cantidad = (!array_key_exists("producto_cantidad", $productos_kit)) ? '' : $productos_kit->producto_cantidad;
 
     return $productos_kit;
