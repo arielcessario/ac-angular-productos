@@ -999,9 +999,11 @@ function checkFotos($fotos)
  */
 function checkPrecios($precios)
 {
-    $precios->producto_id = (!array_key_exists("producto_id", $precios)) ? 0 : $precios->producto_id;
-    $precios->precio_tipo_id = (!array_key_exists("precio_tipo_id", $precios)) ? 0 : $precios->precio_tipo_id;
-    $precios->precio = (!array_key_exists("precio", $precios)) ? 0 : $precios->precio;
+    foreach($precios as $precio){
+        $precio->producto_id = (!array_key_exists("producto_id", $precio)) ? 0 : $precio->producto_id;
+        $precio->precio_tipo_id = (!array_key_exists("precio_tipo_id", $precio)) ? 0 : $precio->precio_tipo_id;
+        $precio->precio = (!array_key_exists("precio", $precio)) ? 0 : $precio->precio;
+    }
 
     return $precios;
 }
@@ -1013,8 +1015,10 @@ function checkPrecios($precios)
  */
 function checkCategorias($categorias)
 {
-    $categorias->producto_id = (!array_key_exists("producto_id", $categorias)) ? 0 : $categorias->producto_id;
-    $categorias->categoria_id = (!array_key_exists("categoria_id", $categorias)) ? 0 : $categorias->categoria_id;
+    foreach($categorias as $categoria){
+        $categoria->producto_id = (!array_key_exists("producto_id", $categoria)) ? 0 : $categoria->producto_id;
+        $categoria->categoria_id = (!array_key_exists("categoria_id", $categoria)) ? 0 : $categoria->categoria_id;
+    }
 
     return $categorias;
 }
