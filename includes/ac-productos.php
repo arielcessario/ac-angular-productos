@@ -144,8 +144,8 @@ function createProducto($product)
 
         // Solo para cuando es kit
         if ($product_decoded->producto_tipo == 2) {
-            foreach ($product_decoded->productos_kit as $producto_kit) {
-                if (createKits($producto_kit, $result, $db)) {
+            foreach ($product_decoded->kits as $kit) {
+                if (createKits($kit, $result, $db)) {
                     $db->rollback();
                     echo json_encode(-1);
                     return;
@@ -391,14 +391,14 @@ function updateProducto($product)
     if ($result > -1) {
 
         foreach ($product_decoded->precios as $precio) {
-            if (createPrecios($precio, $result, $db)) {
+            if (createPrecios($precio, $product_decoded->producto_id, $db)) {
                 $db->rollback();
                 echo json_encode(-1);
                 return;
             }
         }
         foreach ($product_decoded->categorias as $categoria) {
-            if (createCategorias($categoria, $result, $db)) {
+            if (createCategorias($categoria, $product_decoded->producto_id, $db)) {
                 $db->rollback();
                 echo json_encode(-1);
                 return;
@@ -406,7 +406,7 @@ function updateProducto($product)
         }
         foreach ($product_decoded->fotos as $foto) {
 
-            if (createFotos($foto, $result, $db)) {
+            if (createFotos($foto, $product_decoded->producto_id, $db)) {
                 $db->rollback();
                 echo json_encode(-1);
                 return;
@@ -414,7 +414,7 @@ function updateProducto($product)
         }
 
         foreach ($product_decoded->proveedores as $proveedor) {
-            if (createProveedores($proveedor, $result, $db)) {
+            if (createProveedores($proveedor, $product_decoded->producto_id, $db)) {
                 $db->rollback();
                 echo json_encode(-1);
                 return;
@@ -424,7 +424,7 @@ function updateProducto($product)
         // Solo para cuando es kit
         if ($product_decoded->producto_tipo == 2) {
             foreach ($product_decoded->productos_kit as $producto_kit) {
-                if (createKits($producto_kit, $result, $db)) {
+                if (createKits($producto_kit, $product_decoded->producto_id, $db)) {
                     $db->rollback();
                     echo json_encode(-1);
                     return;
