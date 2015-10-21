@@ -246,7 +246,7 @@ function createKits($kit, $producto_id, $db)
 {
     $data = array(
         'producto_cantidad' => $kit->producto_cantidad,
-        'producto_id' => $kit->producto_cantidadproducto_id,
+        'producto_id' => $kit->producto_id,
         'parent_id' => $producto_id
     );
 
