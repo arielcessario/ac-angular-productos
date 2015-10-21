@@ -754,7 +754,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
                 $have_cat = true;
             }
 
-            if(!$have_cat){
+            if (!$have_cat) {
                 array_push($final[$row['producto_id']]['categorias'], array(
                     'categoria_id' => $row['categoria_id'],
                     'nombre' => $row['nombreCategoria'],
@@ -783,7 +783,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
                 $have_pre = true;
             }
 
-            if(!$have_pre){
+            if (!$have_pre) {
                 array_push($final[$row['producto_id']]['precios'], array(
                     'precio_id' => $row['precio_id'],
                     'precio_tipo_id' => $row['precio_tipo_id'],
@@ -812,7 +812,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
                 $have_fot = true;
             }
 
-            if(!$have_fot){
+            if (!$have_fot) {
                 array_push($final[$row['producto_id']]['fotos'], array(
                     'producto_foto_id' => $row['producto_foto_id'],
                     'nombre' => $row['nombreFoto'],
@@ -840,7 +840,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
                 $have_kit = true;
             }
 
-            if(!$have_kit){
+            if (!$have_kit) {
                 array_push($final[$row['producto_id']]['kits'], array(
                     'producto_kit_id' => $row['producto_kit_id'],
                     'producto_id' => $row['productoKit'],
@@ -848,8 +848,6 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
                 ));
             }
         }
-
-
 
 
         $have_pro = false;
@@ -871,7 +869,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
                 $have_pro = true;
             }
 
-            if(!$have_pro){
+            if (!$have_pro) {
                 array_push($final[$row['producto_id']]['proveedores'], array(
                     'usuario_id' => $row['usuario_id'],
                     'nombre' => $row['nombreUsuario'],
@@ -971,9 +969,10 @@ function checkProductosKit($productos_kit)
  */
 function checkProductosProveedores($productos_proveedores)
 {
-    $productos_proveedores->producto_id = (!array_key_exists("producto_id", $productos_proveedores)) ? 0 : $productos_proveedores->producto_id;
-    $productos_proveedores->proveedor_id = (!array_key_exists("proveedor_id", $productos_proveedores)) ? '' : $productos_proveedores->proveedor_id;
-
+    foreach($productos_proveedores as $producto_proveedor) {
+        $producto_proveedor->producto_id = (!array_key_exists("producto_id", $producto_proveedor)) ? 0 : $producto_proveedor->producto_id;
+        $producto_proveedor->proveedor_id = (!array_key_exists("proveedor_id", $producto_proveedor)) ? '' : $producto_proveedor->proveedor_id;
+    }
     return $productos_proveedores;
 }
 
@@ -985,10 +984,11 @@ function checkProductosProveedores($productos_proveedores)
  */
 function checkFotos($fotos)
 {
-    $fotos->producto_id = (!array_key_exists("producto_id", $fotos)) ? 0 : $fotos->producto_id;
-    $fotos->nombre = (!array_key_exists("nombre", $fotos)) ? '' : $fotos->nombre;
-    $fotos->main = (!array_key_exists("main", $fotos)) ? 0 : $fotos->main;
-
+    foreach ($fotos as $foto) {
+        $foto->producto_id = (!array_key_exists("producto_id", $foto)) ? 0 : $foto->producto_id;
+        $foto->nombre = (!array_key_exists("nombre", $foto)) ? '' : $foto->nombre;
+        $foto->main = (!array_key_exists("main", $foto)) ? 0 : $foto->main;
+    }
     return $fotos;
 }
 
@@ -999,7 +999,7 @@ function checkFotos($fotos)
  */
 function checkPrecios($precios)
 {
-    foreach($precios as $precio){
+    foreach ($precios as $precio) {
         $precio->producto_id = (!array_key_exists("producto_id", $precio)) ? 0 : $precio->producto_id;
         $precio->precio_tipo_id = (!array_key_exists("precio_tipo_id", $precio)) ? 0 : $precio->precio_tipo_id;
         $precio->precio = (!array_key_exists("precio", $precio)) ? 0 : $precio->precio;
@@ -1015,7 +1015,7 @@ function checkPrecios($precios)
  */
 function checkCategorias($categorias)
 {
-    foreach($categorias as $categoria){
+    foreach ($categorias as $categoria) {
         $categoria->producto_id = (!array_key_exists("producto_id", $categoria)) ? 0 : $categoria->producto_id;
         $categoria->categoria_id = (!array_key_exists("categoria_id", $categoria)) ? 0 : $categoria->categoria_id;
     }
