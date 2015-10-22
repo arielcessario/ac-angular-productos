@@ -603,7 +603,7 @@
 
 
         service.addToCart = addToCart;
-        service.removeFromCart = updateProductInCart;
+        service.updateProductInCart = updateProductInCart;
         service.removeFromCart = removeFromCart;
         service.reloadLastCart = reloadLastCart; // Invoca a getByParam con status 0, si existe cargalo como carrito.
         service.checkOut = checkOut; // Es solo invocar a update con el estado cambiado.

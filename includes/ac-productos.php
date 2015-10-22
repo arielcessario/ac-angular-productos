@@ -908,13 +908,11 @@ function getCarritos($usuario_id)
     $results = $db->get('carritos c', null, 'c.carrito_id, c.status, c.total, c.fecha, c.usuario_id, u.nombre, u.apellido');
 
     foreach ($results as $key => $row) {
-
         $db = new MysqliDb();
         $db->where('carrito_id', $row['carrito_id']);
         $db->join("productos p", "p.producto_id=c.producto_id", "LEFT");
-        $categorias = $db->get('carrito_detalles c', null, 'c.carrito_detalle_id, c.carrito_id, c.producto_id, p.nombre, c.cantidad, c.en_oferta, c.precio_unitario');
-        $results[$key]['categorias'] = $categorias;
-
+        $productos = $db->get('carrito_detalles c', null, 'c.carrito_detalle_id, c.carrito_id, c.producto_id, p.nombre, c.cantidad, c.en_oferta, c.precio_unitario');
+        $results[$key]['productos'] = $productos;
     }
     echo json_encode($results);
 }
