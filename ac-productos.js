@@ -763,7 +763,7 @@
          * @returns {*}
          */
         function get(usuario_id, callback) {
-            var urlGet = url + '?function=getCarritos&usuario_id=';
+            var urlGet = url + '?function=getCarritos&usuario_id='+usuario_id;
             var $httpDefaultCache = $cacheFactory.get('$http');
             var cachedData = [];
 
