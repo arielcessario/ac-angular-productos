@@ -1044,9 +1044,11 @@ function checkCategoria($categoria)
  */
 function checkCarrito($carrito)
 {
+    $now = new DateTime(null, new DateTimeZone('America/Argentina/Buenos_Aires'));
+
     $carrito->status = (!array_key_exists("status", $carrito)) ? 1 : $carrito->status;
     $carrito->total = (!array_key_exists("total", $carrito)) ? 0.0 : $carrito->total;
-    $carrito->fecha = (!array_key_exists("fecha", $carrito)) ? '' : $carrito->fecha;
+    $carrito->fecha = (!array_key_exists("fecha", $carrito)) ? $now->format('Y-m-d H:i:s') : $carrito->fecha;
     $carrito->usuario_id = (!array_key_exists("usuario_id", $carrito)) ? -1 : $carrito->usuario_id;
     $carrito->carrito_detalle = (!array_key_exists("carrito_detalle", $carrito)) ? array() : checkCarritoDetalle($carrito->carrito_detalle);
 
