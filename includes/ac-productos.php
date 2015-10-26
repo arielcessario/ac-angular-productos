@@ -384,9 +384,13 @@ function updateProducto($product)
 
     $db->where('producto_id', $product_decoded->producto_id);
     $db->delete('precios');
+    $db->where('producto_id', $product_decoded->producto_id);
     $db->delete('productos_fotos');
+    $db->where('producto_id', $product_decoded->producto_id);
     $db->delete('productos_categorias');
+    $db->where('producto_id', $product_decoded->producto_id);
     $db->delete('productos_kits');
+    $db->where('producto_id', $product_decoded->producto_id);
     $db->delete('productos_proveedores');
 
     if ($result) {
