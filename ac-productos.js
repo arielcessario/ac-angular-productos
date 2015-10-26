@@ -375,7 +375,7 @@
 
 
         /**
-         * @description Retorna la lista filtrada de categoryos
+         * @description Retorna la lista filtrada de categorias
          * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
          * @param value
          * @param callback
@@ -402,13 +402,13 @@
         }
 
         /** @name: remove
-         * @param categoryo_id
+         * @param categoria_id
          * @param callback
-         * @description: Elimina el categoryo seleccionado.
+         * @description: Elimina el categoria seleccionado.
          */
-        function remove(categoryo_id, callback) {
+        function remove(categoria_id, callback) {
             return $http.post(url,
-                {function: 'removeCategoria', 'categoryo_id': categoryo_id})
+                {function: 'removeCategoria', 'categoria_id': categoria_id})
                 .success(function (data) {
                     //console.log(data);
                     if (data !== 'false') {
@@ -422,17 +422,17 @@
         }
 
         /**
-         * @description: Crea un categoryo.
-         * @param categoryo
+         * @description: Crea un categoria.
+         * @param categoria
          * @param callback
          * @returns {*}
          */
-        function create(categoryo, callback) {
+        function create(categoria, callback) {
 
             return $http.post(url,
                 {
                     'function': 'createCategoria',
-                    'categoryo': JSON.stringify(categoryo)
+                    'categoria': JSON.stringify(categoria)
                 })
                 .success(function (data) {
                     CategoryVars.clearCache = true;
@@ -446,15 +446,15 @@
 
 
         /** @name: update
-         * @param categoryo
+         * @param categoria
          * @param callback
-         * @description: Realiza update al categoryo.
+         * @description: Realiza update al categoria.
          */
-        function update(categoryo, callback) {
+        function update(categoria, callback) {
             return $http.post(url,
                 {
                     'function': 'updateCategoria',
-                    'categoryo': JSON.stringify(categoryo)
+                    'categoria': JSON.stringify(categoria)
                 })
                 .success(function (data) {
                     CategoryVars.clearCache = true;
@@ -564,7 +564,7 @@
 
     CategoryVars.$inject = [];
     /**
-     * @description Almacena variables temporales de categoryos
+     * @description Almacena variables temporales de categorias
      * @constructor
      */
     function CategoryVars() {
