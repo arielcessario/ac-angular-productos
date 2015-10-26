@@ -449,7 +449,7 @@ function updateCategoria($categoria)
 {
     $db = new MysqliDb();
     $db->startTransaction();
-    $categoria_decoded = checkCategorias(json_decode($categoria));
+    $categoria_decoded = checkCategoria(json_decode($categoria));
     $db->where('categoria_id', $categoria_decoded->categoria_id);
     $data = array(
         'nombre' => $categoria_decoded->nombre,
