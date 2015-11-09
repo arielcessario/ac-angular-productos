@@ -117,7 +117,7 @@
                     return callback(productos);
 
                 data.forEach(function(producto){
-                    if(producto === undefined || producto.categorias === undefined)
+                    if(producto === undefined || producto.categorias === undefined || producto.categorias.length == 0)
                         return callback(productos);
 
                     if (categoria_id == producto.categorias[0].categoria_id)
@@ -320,7 +320,6 @@
         //Function declarations
         service.get = get;
         service.getByParams = getByParams;
-        service.getItemsByCategory = getItemsByCategory;
 
         service.create = create;
 
@@ -385,20 +384,6 @@
 
                 AcUtils.getByParams(params, values, exact_match, data, callback);
             })
-        }
-
-        /**
-         *
-         * @param callback
-         * @returns {*}
-         */
-        function getItemsByCategory(categoria_id, productos) {
-            var count = 0;
-            productos.forEach(function(producto){
-                if (categoria_id == producto.categorias[0].categoria_id)
-                    count = count + 1;
-            });
-            return count;
         }
 
         /** @name: remove
