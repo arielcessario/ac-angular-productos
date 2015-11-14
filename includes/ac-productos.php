@@ -893,7 +893,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
 function getCategorias()
 {
     $db = new MysqliDb();
-    $results = $db->rawQuery('SELECT c.*, d.nombre nombrePadre FROM categorias c LEFT JOIN categorias d ON c.parent_id = d.categoria_id;');
+    $results = $db->rawQuery('SELECT c.*, (select count(producto_id) from productos_categorias p where p.categoria_id= c.categoria_id) total, d.nombre nombrePadre FROM categorias c LEFT JOIN categorias d ON c.parent_id = d.categoria_id;');
 
     echo json_encode($results);
 }
