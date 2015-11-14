@@ -81,7 +81,7 @@
 
         /**
          * @description Retorna la lista filtrada de productos
-         * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param param -> String, separado por comas (,) que contiene la lista de parï¿½metros de bï¿½squeda, por ej: nombre, sku
          * @param value
          * @param callback
          */
@@ -192,33 +192,33 @@
         }
 
         /**
-         * Para el uso de la páginación, definir en el controlador las siguientes variables:
+         * Para el uso de la pï¿½ginaciï¿½n, definir en el controlador las siguientes variables:
          *
          vm.start = 0;
          vm.pagina = ProductVars.pagina;
-         ProductVars.paginacion = 5; Cantidad de registros por página
+         ProductVars.paginacion = 5; Cantidad de registros por pï¿½gina
          vm.end = ProductVars.paginacion;
 
 
          En el HTML, en el ng-repeat agregar el siguiente filtro: limitTo:appCtrl.end:appCtrl.start;
 
-         Agregar un botón de next:
+         Agregar un botï¿½n de next:
          <button ng-click="appCtrl.next()">next</button>
 
-         Agregar un botón de prev:
+         Agregar un botï¿½n de prev:
          <button ng-click="appCtrl.prev()">prev</button>
 
-         Agregar un input para la página:
+         Agregar un input para la pï¿½gina:
          <input type="text" ng-keyup="appCtrl.goToPagina()" ng-model="appCtrl.pagina">
 
          */
 
 
         /**
-         * @description: Ir a página
+         * @description: Ir a pï¿½gina
          * @param pagina
          * @returns {*}
-         * uso: agregar un método
+         * uso: agregar un mï¿½todo
          vm.goToPagina = function () {
                 vm.start= ProductService.goToPagina(vm.pagina).start;
             };
@@ -243,7 +243,7 @@
 
         /**
          * @name next
-         * @description Ir a próxima página
+         * @description Ir a prï¿½xima pï¿½gina
          * @returns {*}
          * uso agregar un metodo
          vm.next = function () {
@@ -264,9 +264,9 @@
 
         /**
          * @name previous
-         * @description Ir a página anterior
+         * @description Ir a pï¿½gina anterior
          * @returns {*}
-         * uso, agregar un método
+         * uso, agregar un mï¿½todo
          vm.prev = function () {
                 vm.start= ProductService.prev().start;
                 vm.pagina = ProductVars.pagina;
@@ -294,17 +294,17 @@
      * @constructor
      */
     function ProductVars() {
-        // Cantidad de páginas total del recordset
+        // Cantidad de pï¿½ginas total del recordset
         this.paginas = 1;
-        // Página seleccionada
+        // Pï¿½gina seleccionada
         this.pagina = 1;
-        // Cantidad de registros por página
+        // Cantidad de registros por pï¿½gina
         this.paginacion = 10;
-        // Registro inicial, no es página, es el registro
+        // Registro inicial, no es pï¿½gina, es el registro
         this.start = 0;
 
 
-        // Indica si se debe limpiar el caché la próxima vez que se solicite un get
+        // Indica si se debe limpiar el cachï¿½ la prï¿½xima vez que se solicite un get
         this.clearCache = true;
 
     }
@@ -375,7 +375,7 @@
 
         /**
          * @description Retorna la lista filtrada de categorias
-         * @param param -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param param -> String, separado por comas (,) que contiene la lista de parï¿½metros de bï¿½squeda, por ej: nombre, sku
          * @param value
          * @param callback
          */
@@ -451,33 +451,33 @@
         }
 
         /**
-         * Para el uso de la páginación, definir en el controlador las siguientes variables:
+         * Para el uso de la pï¿½ginaciï¿½n, definir en el controlador las siguientes variables:
          *
          vm.start = 0;
          vm.pagina = CategoryVars.pagina;
-         CategoryVars.paginacion = 5; Cantidad de registros por página
+         CategoryVars.paginacion = 5; Cantidad de registros por pï¿½gina
          vm.end = CategoryVars.paginacion;
 
 
          En el HTML, en el ng-repeat agregar el siguiente filtro: limitTo:appCtrl.end:appCtrl.start;
 
-         Agregar un botón de next:
+         Agregar un botï¿½n de next:
          <button ng-click="appCtrl.next()">next</button>
 
-         Agregar un botón de prev:
+         Agregar un botï¿½n de prev:
          <button ng-click="appCtrl.prev()">prev</button>
 
-         Agregar un input para la página:
+         Agregar un input para la pï¿½gina:
          <input type="text" ng-keyup="appCtrl.goToPagina()" ng-model="appCtrl.pagina">
 
          */
 
 
         /**
-         * @description: Ir a página
+         * @description: Ir a pï¿½gina
          * @param pagina
          * @returns {*}
-         * uso: agregar un método
+         * uso: agregar un mï¿½todo
          vm.goToPagina = function () {
                 vm.start= CategoryService.goToPagina(vm.pagina).start;
             };
@@ -502,7 +502,7 @@
 
         /**
          * @name next
-         * @description Ir a próxima página
+         * @description Ir a prï¿½xima pï¿½gina
          * @returns {*}
          * uso agregar un metodo
          vm.next = function () {
@@ -523,9 +523,9 @@
 
         /**
          * @name previous
-         * @description Ir a página anterior
+         * @description Ir a pï¿½gina anterior
          * @returns {*}
-         * uso, agregar un método
+         * uso, agregar un mï¿½todo
          vm.prev = function () {
                 vm.start= CategoryService.prev().start;
                 vm.pagina = CategoryVars.pagina;
@@ -553,17 +553,17 @@
      * @constructor
      */
     function CategoryVars() {
-        // Cantidad de páginas total del recordset
+        // Cantidad de pï¿½ginas total del recordset
         this.paginas = 1;
-        // Página seleccionada
+        // Pï¿½gina seleccionada
         this.pagina = 1;
-        // Cantidad de registros por página
+        // Cantidad de registros por pï¿½gina
         this.paginacion = 10;
-        // Registro inicial, no es página, es el registro
+        // Registro inicial, no es pï¿½gina, es el registro
         this.start = 0;
 
 
-        // Indica si se debe limpiar el caché la próxima vez que se solicite un get
+        // Indica si se debe limpiar el cachï¿½ la prï¿½xima vez que se solicite un get
         this.clearCache = true;
 
     }
@@ -573,6 +573,7 @@
     function CartService($http, CartVars, $cacheFactory, AcUtils) {
         //Variables
         var service = {};
+
 
         var url = currentScriptPath.replace('ac-productos.js', '/includes/ac-productos.php');
 
@@ -717,7 +718,7 @@
         }
 
         /**
-         * Retorna el último carrito en estado Iniciado para el usuario seleccionado.
+         * Retorna el ï¿½ltimo carrito en estado Iniciado para el usuario seleccionado.
          * @param usuario_id
          * @param callback
          */
@@ -743,7 +744,7 @@
 
         /**
          * @description Obtiene todos los carritos
-         * @param usuario_id, en caso traer todos los carritos, debe ser -1; Está así para que si el módulo está en la web, nunca llegue al cliente la lista completa de pedidos;
+         * @param usuario_id, en caso traer todos los carritos, debe ser -1; Estï¿½ asï¿½ para que si el mï¿½dulo estï¿½ en la web, nunca llegue al cliente la lista completa de pedidos;
          * @param callback
          * @returns {*}
          */
@@ -782,7 +783,7 @@
 
         /**
          * @description Retorna la lista filtrada de Carritos
-         * @param params -> String, separado por comas (,) que contiene la lista de parámetros de búsqueda, por ej: nombre, sku
+         * @param params -> String, separado por comas (,) que contiene la lista de parï¿½metros de bï¿½squeda, por ej: nombre, sku
          * @param values
          * @param exact_match
          * @param usuario_id
@@ -860,33 +861,33 @@
         }
 
         /**
-         * Para el uso de la páginación, definir en el controlador las siguientes variables:
+         * Para el uso de la pï¿½ginaciï¿½n, definir en el controlador las siguientes variables:
          *
          vm.start = 0;
          vm.pagina = CartVars.pagina;
-         CartVars.paginacion = 5; Cantidad de registros por página
+         CartVars.paginacion = 5; Cantidad de registros por pï¿½gina
          vm.end = CartVars.paginacion;
 
 
          En el HTML, en el ng-repeat agregar el siguiente filtro: limitTo:appCtrl.end:appCtrl.start;
 
-         Agregar un botón de next:
+         Agregar un botï¿½n de next:
          <button ng-click="appCtrl.next()">next</button>
 
-         Agregar un botón de prev:
+         Agregar un botï¿½n de prev:
          <button ng-click="appCtrl.prev()">prev</button>
 
-         Agregar un input para la página:
+         Agregar un input para la pï¿½gina:
          <input type="text" ng-keyup="appCtrl.goToPagina()" ng-model="appCtrl.pagina">
 
          */
 
 
         /**
-         * @description: Ir a página
+         * @description: Ir a pï¿½gina
          * @param pagina
          * @returns {*}
-         * uso: agregar un método
+         * uso: agregar un mï¿½todo
          vm.goToPagina = function () {
                 vm.start= CartService.goToPagina(vm.pagina).start;
             };
@@ -911,7 +912,7 @@
 
         /**
          * @name next
-         * @description Ir a próxima página
+         * @description Ir a prï¿½xima pï¿½gina
          * @returns {*}
          * uso agregar un metodo
          vm.next = function () {
@@ -932,9 +933,9 @@
 
         /**
          * @name previous
-         * @description Ir a página anterior
+         * @description Ir a pï¿½gina anterior
          * @returns {*}
-         * uso, agregar un método
+         * uso, agregar un mï¿½todo
          vm.prev = function () {
                 vm.start= CartService.prev().start;
                 vm.pagina = CartVars.pagina;
@@ -963,13 +964,13 @@
      * @constructor
      */
     function CartVars($rootScope) {
-        // Cantidad de páginas total del recordset
+        // Cantidad de pï¿½ginas total del recordset
         this.paginas = 1;
-        // Página seleccionada
+        // Pï¿½gina seleccionada
         this.pagina = 1;
-        // Cantidad de registros por página
+        // Cantidad de registros por pï¿½gina
         this.paginacion = 10;
-        // Registro inicial, no es página, es el registro
+        // Registro inicial, no es pï¿½gina, es el registro
         this.start = 0;
 
         // Carrito Temporal
@@ -992,15 +993,15 @@
         };
 
 
-        // Indica si se debe limpiar el caché la próxima vez que se solicite un get
+        // Indica si se debe limpiar el cachï¿½ la prï¿½xima vez que se solicite un get
         this.clearCache = true;
 
-        // Transmite el aviso de actualización
+        // Transmite el aviso de actualizaciï¿½n
         this.broadcast = function () {
             $rootScope.$broadcast("CartVars")
         };
 
-        // Recibe aviso de actualización
+        // Recibe aviso de actualizaciï¿½n
         this.listen = function (callback) {
             $rootScope.$on("CartVars", callback)
         };
