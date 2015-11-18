@@ -727,7 +727,7 @@
         function reloadLastCart(usuario_id, callback){
 
             get(usuario_id, function(data){
-                AcUtils.getByParams('status', 0, true, data, callback);
+                AcUtils.getByParams('status', "0", "true", data, callback);
             });
 
         }
