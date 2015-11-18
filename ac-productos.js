@@ -608,7 +608,7 @@
          * @param callback
          */
         function addToCart(carrito_id, producto, callback) {
-
+            /*
             var carrito_detalle = {
                 carrito_id: carrito_id,
                 producto_id: producto.producto_id,
@@ -616,19 +616,21 @@
                 en_oferta: producto.en_oferta,
                 precio_unitario: producto.precio_unitario
             };
-
+            */
             return $http.post(url,
                 {
                     'function': 'createCarritoDetalle',
-                    'carrito_detalle': JSON.stringify(carrito_detalle)
+                    'carrito_id': carrito_id,
+                    'carrito_detalle': JSON.stringify(producto)
                 })
                 .success(function (data) {
 
 
                     // Agrega un detalle al carrito y le avisa a todo el sistema para que se refresque
                     if(data != -1){
-                        carrito_detalle.carrito_detalle_id = data;
-                        CartVars.carrito.push(carrito_detalle);
+                        //carrito_detalle.carrito_detalle_id = data;
+                        //CartVars.carrito.push(carrito_detalle);
+                        CartVars.carrito.push(data);
                         CartVars.broadcast();
                     }
 

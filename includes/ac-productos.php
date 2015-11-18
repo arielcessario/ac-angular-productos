@@ -56,7 +56,8 @@ if ($decoded != null) {
     } else if ($decoded->function == 'createCarrito') {
         createCarrito($decoded->carrito);
     } else if ($decoded->function == 'createCarritoDetalle') {
-        createCarritoDetalle($decoded->carrito_detalle);
+        //createCarritoDetalle($decoded->carrito_detalle);
+        createCarritoDetalle($decoded->carrito_id, $decoded->carrito_detalle);
     } else if ($decoded->function == 'updateProducto') {
         updateProducto($decoded->producto);
     } else if ($decoded->function == 'updateCategoria') {
@@ -283,10 +284,45 @@ function createCategoria($categoria)
  * @description Crea un detalle de carrito
  * @param $carrito_detalle
  */
-function createCarritoDetalle($carrito_detalle)
+function createCarritoDetalle($carrito_id, $carrito_detalle)
 {
     $db = new MysqliDb();
     $db->startTransaction();
+    $carrito_array = array();
+
+    $carrito_detalle_decoded = json_decode($carrito_detalle);
+
+    foreach ($carrito_detalle_decoded as $detalle) {
+
+        //$detalle_decoded = checkCarritoDetalle(json_decode($detalle));
+        $detalle_decoded = checkCarritoDetalle($detalle);
+
+        $data = array(
+            'carrito_id' => $carrito_id,
+            'producto_id' => $detalle_decoded->producto_id,
+            'cantidad' => $detalle_decoded->cantidad,
+            'en_oferta' => $detalle_decoded->en_oferta,
+            'precio_unitario' => $detalle_decoded->precio_unitario
+        );
+
+        $result = $db->insert('carrito_detalles', $data);
+        if ($result > -1) {
+            $data->carrito_detalle_id = $result;
+            array_push($carrito_array, $data);
+        } else {
+            $db->rollback();
+            echo json_encode(-1);
+            return;
+        }
+    }
+
+    $db->commit();
+    echo json_encode($carrito_array);
+
+
+
+
+    /*
     $carrito_detalle_decoded = checkCarritoDetalle(json_decode($carrito_detalle));
 
     $data = array(
@@ -305,6 +341,7 @@ function createCarritoDetalle($carrito_detalle)
         $db->rollback();
         echo json_encode(-1);
     }
+    */
 }
 
 /**
