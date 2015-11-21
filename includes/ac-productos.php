@@ -307,7 +307,7 @@ function createCarritoDetalle($carrito_id, $carrito_detalle)
 
         $result = $db->insert('carrito_detalles', $data);
         if ($result > -1) {
-            $data->carrito_detalle_id = $result;
+            //$data->carrito_detalle_id = $result;
             array_push($carrito_array, $data);
         } else {
             $db->rollback();
