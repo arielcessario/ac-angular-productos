@@ -630,7 +630,9 @@
                     if(data != -1){
                         //carrito_detalle.carrito_detalle_id = data;
                         //CartVars.carrito.push(carrito_detalle);
-                        CartVars.carrito.push(data);
+                        for(var i=0; i < data.length; i++){
+                            CartVars.carrito.push(data[i]);
+                        }
                         CartVars.broadcast();
                     }
 

@@ -516,7 +516,7 @@ function updateCarritoDetalle($carrito_detalle)
     $db = new MysqliDb();
     $db->startTransaction();
     $carrito_detalle_decoded = checkCarritoDetalle(json_decode($carrito_detalle));
-    $db->where('carrito_detalle_id', $carrito_detalle_decoded->categoria_id);
+    $db->where('carrito_detalle_id', $carrito_detalle_decoded->carrito_detalle_id);
     $data = array(
         'carrito_id' => $carrito_detalle_decoded->carrito_id,
         'producto_id' => $carrito_detalle_decoded->producto_id,
