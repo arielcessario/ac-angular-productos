@@ -703,7 +703,7 @@
                     if(data != -1){
                         var index = 0;
                         for (var i = 0; i<CartVars.carrito.length; i++){
-                            if(CartVars.carrito[i].carrito_detalle_id == carrito_detalle.carrito_detalle_id){
+                            if(CartVars.carrito[i].carrito_detalle_id == carrito_detalle_id){
                                 index = i;
                             }
                         }
