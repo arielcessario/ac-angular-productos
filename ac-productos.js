@@ -708,7 +708,7 @@
                             }
                         }
 
-                        CartVars.splice(index, 1);
+                        CartVars.carrito.splice(index, 1);
                         CartVars.broadcast();
                     }
 
