@@ -659,16 +659,24 @@ function removeProveedores($producto_id)
 function removeCarritoDetalle($carrito_detalle_id)
 {
     $db = new MysqliDb();
+    $db->startTransaction();
+    try{
+        $carrito_detalle_id_decoded = json_decode($carrito_detalle_id);
 
-    $db->where("carrito_detalle_id", $carrito_detalle_id);
-    $results = $db->delete('carrito_detalles');
+        $db->where("carrito_detalle_id", $carrito_detalle_id_decoded, 'IN');
+        $results = $db->delete('carrito_detalles');
 
-    if ($results) {
-
-        echo json_encode(1);
-    } else {
+        if ($results) {
+            $db->commit();
+            echo json_encode(1);
+        } else {
+            $db->rollback();
+            echo json_encode(-1);
+        }
+    }
+    catch (Exception $e){
+        $db->rollback();
         echo json_encode(-1);
-
     }
 }
 
