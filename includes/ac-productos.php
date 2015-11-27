@@ -382,7 +382,9 @@ function createCarrito($carrito)
 //        }
 
         $db->commit();
-        echo json_encode($result);
+        //echo json_encode($result);
+        $data['carrito_id'] = $result;
+        echo json_encode($data);
     } else {
         $db->rollback();
         echo json_encode(-1);
