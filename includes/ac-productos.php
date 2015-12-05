@@ -358,7 +358,9 @@ function createCarrito($carrito)
         'status' => $carrito_decoded->status,
         'total' => $carrito_decoded->total,
         'fecha' => $carrito_decoded->fecha,
-        'usuario_id' => $carrito_decoded->usuario_id
+        'usuario_id' => $carrito_decoded->usuario_id,
+        'origen' => $carrito_decoded->origen,
+        'destino' => $carrito_decoded->destino
     );
 
     $result = $db->insert('carritos', $data);
@@ -552,7 +554,9 @@ function updateCarrito($carrito)
         'status' => $carrito_decoded->status,
         'total' => $carrito_decoded->total,
         'fecha' => $carrito_decoded->fecha,
-        'usuario_id' => $carrito_decoded->usuario_id
+        'usuario_id' => $carrito_decoded->usuario_id,
+        'origen' => $carrito_decoded->origen,
+        'destino' => $carrito_decoded->destino
     );
 
     $result = $db->update('carritos', $data);
@@ -1102,6 +1106,8 @@ function checkCarrito($carrito)
     $carrito->total = (!array_key_exists("total", $carrito)) ? 0.0 : $carrito->total;
     $carrito->fecha = (!array_key_exists("fecha", $carrito)) ? $now->format('Y-m-d H:i:s') : $carrito->fecha;
     $carrito->usuario_id = (!array_key_exists("usuario_id", $carrito)) ? -1 : $carrito->usuario_id;
+    $carrito->origen = (!array_key_exists("origen", $carrito)) ? -1 : $carrito->origen;
+    $carrito->destino = (!array_key_exists("destino", $carrito)) ? -1 : $carrito->destino;
     $carrito->carrito_detalle = (!array_key_exists("carrito_detalle", $carrito)) ? array() : checkCarritoDetalle($carrito->carrito_detalle);
 
     return $carrito;

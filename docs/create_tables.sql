@@ -71,6 +71,8 @@ CREATE TABLE carritos (
   total decimal(8,2) NOT NULL,
   fecha timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   usuario_id int(11) NOT NULL DEFAULT '-1',
+  origen int(11) NOT NULL DEFAULT '-1',
+  destino int(11) NOT NULL DEFAULT '-1',
   PRIMARY KEY (carrito_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
