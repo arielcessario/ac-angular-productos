@@ -705,14 +705,17 @@
                 .success(function (data) {
 
                     if(data != -1){
-                        var index = 0;
-                        for (var i = 0; i<CartVars.carrito.length; i++){
-                            if(CartVars.carrito[i].carrito_detalle_id == carrito_detalle_id){
-                                index = i;
+                        //var index = 0;
+                        for (var i = 0; i < CartVars.carrito.length; i++){
+                            for(var j=0; j < carrito_detalle_id.length; j++){
+                                if(CartVars.carrito[i].carrito_detalle_id == carrito_detalle_id[j]){
+                                    //index = i;
+                                    CartVars.carrito.splice(i, 1);
+                                }
                             }
                         }
 
-                        CartVars.carrito.splice(index, 1);
+                        //CartVars.carrito.splice(index, 1);
                         CartVars.broadcast();
                     }
 
