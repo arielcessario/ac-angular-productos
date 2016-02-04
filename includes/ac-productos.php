@@ -108,7 +108,8 @@ function createProducto($product)
         'destacado' => $product_decoded->destacado,
         'en_slider' => $product_decoded->en_slider,
         'en_oferta' => $product_decoded->en_oferta,
-        'producto_tipo' => $product_decoded->producto_tipo
+        'producto_tipo' => $product_decoded->producto_tipo,
+        'iva' => $product_decoded->iva
     );
 
     $result = $db->insert('productos', $data);
@@ -417,7 +418,8 @@ function updateProducto($product)
         'destacado' => $product_decoded->destacado,
         'en_slider' => $product_decoded->en_slider,
         'en_oferta' => $product_decoded->en_oferta,
-        'producto_tipo' => $product_decoded->producto_tipo
+        'producto_tipo' => $product_decoded->producto_tipo,
+        'iva' => $product_decoded->iva
     );
 
     $result = $db->update('productos', $data);
@@ -730,6 +732,7 @@ function getProductos()
     p.producto_tipo,
     p.en_slider,
     p.en_oferta,
+    p.iva,
     c.categoria_id,
     c.nombre nombreCategoria,
     c.parent_id,
@@ -784,6 +787,7 @@ pr.precio, f.producto_foto_id, f.main, f.nombre, u.usuario_id, u.nombre, u.apell
                 'producto_tipo' => $row["producto_tipo"],
                 'en_slider' => $row["en_slider"],
                 'en_oferta' => $row["en_oferta"],
+                'iva' => $row["iva"],
                 'categorias' => array(),
                 'precios' => array(),
                 'fotos' => array(),
@@ -992,6 +996,7 @@ function checkProducto($producto)
     $producto->en_slider = (!array_key_exists("en_slider", $producto)) ? 0 : $producto->en_slider;
     $producto->en_oferta = (!array_key_exists("en_oferta", $producto)) ? 0 : $producto->en_oferta;
     $producto->producto_tipo = (!array_key_exists("producto_tipo", $producto)) ? 0 : $producto->producto_tipo;
+    $producto->iva = (!array_key_exists("iva", $producto)) ? 0.0 : $producto->iva;
     $producto->precios = (!array_key_exists("precios", $producto)) ? array() : checkPrecios($producto->precios);
     $producto->fotos = (!array_key_exists("fotos", $producto)) ? array() : checkFotos($producto->fotos);
     $producto->categorias = (!array_key_exists("categorias", $producto)) ? array() : checkCategorias($producto->categorias);

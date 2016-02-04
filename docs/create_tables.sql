@@ -7,11 +7,12 @@ CREATE TABLE productos (
   pto_repo int(11) DEFAULT NULL,
   sku varchar(45) DEFAULT NULL,
   status int(11) DEFAULT NULL COMMENT '0 - Baja, 1 - Activo, 2 - XXX',
-  vendidos int(11) DEFAULT NULL COMMENT 'Este campo ayuda a la búsqueda de los mas vendidos en caso de no tener control de stock, también ayuda para no recorrer toda la base cuando está integrado con stock',
+  vendidos int(11) DEFAULT NULL COMMENT 'Este campo ayuda a la bï¿½squeda de los mas vendidos en caso de no tener control de stock, tambiï¿½n ayuda para no recorrer toda la base cuando estï¿½ integrado con stock',
   destacado int(11) DEFAULT '0' COMMENT '0 - No, 1 - Si',
   en_slider int(1) DEFAULT '0' COMMENT '0 - No, 1 - Si',
   en_oferta int(1) DEFAULT '0' COMMENT '0 - No, 1 - Si',
   producto_tipo int(11) DEFAULT NULL COMMENT '0 - producto / 1 - insumo / 2 - kit / 3 - Servicio',
+  iva decimal(8,2) DEFAULT 0.0,
   PRIMARY KEY (producto_id),
   KEY SKU (sku)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
@@ -88,7 +89,7 @@ CREATE TABLE carrito_detalles (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 
-# PROVEEDORES POR PRODUCTO - Relación entre productos y proveedores
+# PROVEEDORES POR PRODUCTO - Relaciï¿½n entre productos y proveedores
 CREATE TABLE productos_proveedores (
   producto_id int(11) NOT NULL,
   proveedor_id int(11) NOT NULL,
